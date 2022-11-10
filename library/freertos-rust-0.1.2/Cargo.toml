@@ -1,0 +1,23 @@
+[package]
+edition = "2018"
+name = "freertos-rust"
+version = "0.1.2"
+authors = ["Tobias Kaupat <tk@lobaro.de>"]
+links = "freertos"
+description = "Create to use FreeRTOS in rust projects.\nThe freertos-cargo-build crate can be used to build and link FreeRTOS from source inside build.rs.\n"
+readme = "README.md"
+keywords = ["FreeRTOS", "embedded", "demo", "library"]
+license = "MIT"
+repository = "https://github.com/lobaro/FreeRTOS-rust"
+
+[lib]
+name = "freertos_rust"
+path = "src/lib.rs"
+
+[dependencies]
+core = { version = "1.0.0", optional = true, package = 'rustc-std-workspace-core' }
+alloc = { version = "1.0.0", optional = true, package = 'rustc-std-workspace-alloc' }
+compiler_builtins = { version = '0.1.2', optional = true }
+
+[features]
+rustc-dep-of-std = ['core', 'alloc', 'compiler_builtins']
