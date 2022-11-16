@@ -25,3 +25,6 @@ pub mod time;
 
 mod common;
 pub use common::*;
+
+//Rust bindings for FreeRTOS OS
+use freertos_rust::*;
