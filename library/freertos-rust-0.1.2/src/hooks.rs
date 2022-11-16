@@ -23,6 +23,9 @@ pub static mut FREERTOS_HOOKS: FreeRtosHooks = FreeRtosHooks {
     on_assert: || {}
 };
 
+//This binding removed because it (alone) caused linking issues when both std library and application code depend on freertos-rust.
+//The function is not being used (yet). It can be reinstated and fixed if needed in future.
+/*
 #[allow(unused_doc_comments)]
 #[no_mangle]
 pub extern "C" fn vAssertCalled(file_name_ptr: FreeRtosCharPtr, line: FreeRtosUBaseType) {
@@ -39,3 +42,4 @@ pub extern "C" fn vAssertCalled(file_name_ptr: FreeRtosCharPtr, line: FreeRtosUB
     panic!("FreeRTOS ASSERT: {}:{}", file_name, line);
     //loop {}
 }
+*/
