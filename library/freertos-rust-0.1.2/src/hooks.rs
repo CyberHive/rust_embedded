@@ -23,6 +23,7 @@ pub static mut FREERTOS_HOOKS: FreeRtosHooks = FreeRtosHooks {
     on_assert: || {}
 };
 
+/*
 #[allow(unused_doc_comments)]
 #[no_mangle]
 pub extern "C" fn vAssertCalled(file_name_ptr: FreeRtosCharPtr, line: FreeRtosUBaseType) {
@@ -39,3 +40,4 @@ pub extern "C" fn vAssertCalled(file_name_ptr: FreeRtosCharPtr, line: FreeRtosUB
     panic!("FreeRTOS ASSERT: {}:{}", file_name, line);
     //loop {}
 }
+*/
