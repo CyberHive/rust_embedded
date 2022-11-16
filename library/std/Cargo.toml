@@ -51,11 +51,6 @@ wasi = { version = "0.11.0", features = ['rustc-dep-of-std'], default-features =
 #Rust bindings for FreeRTOS
 freertos-rust = {version = "0.1.2", features = ['rustc-dep-of-std'], path = "../freertos-rust-0.1.2" }
 
-#used for println! and related console features
-#ruspiro-console = "0.5.3"
-#ruspiro-singleton = "0.4.3"
-#ruspiro-lock = "0.5.0"
-
 [features]
 backtrace = [
   "gimli-symbolize",
