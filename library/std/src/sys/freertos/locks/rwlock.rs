@@ -1,7 +1,8 @@
 use crate::cell::Cell;
 
 pub struct RwLock {
-    // This platform has no threads, so we can use a Cell here.
+    // Cell is not an appropriate implementation for a multitasking platform.
+    // Added panics to make this blow up if it is used. Long term, we need to use FreeRTOS mutexes or semaphores.
     mode: Cell<isize>,
 }
 
@@ -19,6 +20,7 @@ impl RwLock {
 
     #[inline]
     pub unsafe fn read(&self) {
+        panic!("rwlock Not implemented for FreeRTOS");
         let m = self.mode.get();
         if m >= 0 {
             self.mode.set(m + 1);
@@ -29,6 +31,7 @@ impl RwLock {
 
     #[inline]
     pub unsafe fn try_read(&self) -> bool {
+        panic!("rwlock Not implemented for FreeRTOS");
         let m = self.mode.get();
         if m >= 0 {
             self.mode.set(m + 1);
@@ -40,6 +43,7 @@ impl RwLock {
 
     #[inline]
     pub unsafe fn write(&self) {
+        panic!("rwlock Not implemented for FreeRTOS");
         if self.mode.replace(-1) != 0 {
             rtabort!("rwlock locked for reading")
         }
@@ -47,6 +51,7 @@ impl RwLock {
 
     #[inline]
     pub unsafe fn try_write(&self) -> bool {
+        panic!("rwlock Not implemented for FreeRTOS");
         if self.mode.get() == 0 {
             self.mode.set(-1);
             true
@@ -57,11 +62,13 @@ impl RwLock {
 
     #[inline]
     pub unsafe fn read_unlock(&self) {
+        panic!("rwlock Not implemented for FreeRTOS");
         self.mode.set(self.mode.get() - 1);
     }
 
     #[inline]
     pub unsafe fn write_unlock(&self) {
+        panic!("rwlock Not implemented for FreeRTOS");
         assert_eq!(self.mode.replace(0), -1);
     }
 }
