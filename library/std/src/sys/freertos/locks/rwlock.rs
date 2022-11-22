@@ -1,9 +1,25 @@
 use crate::cell::Cell;
+use crate::sync::Mutex;
 
+// rwlock allows:
+// - one writer
+// - any number of readers
+// rwlock prevents:
+// - concurrent reader(s) and writer
+// - more than one writer
+//
+// Allowed permutations:
+// Number of Readers    Number of Writers    mode
+//        0                    0              0
+//      1...n                  0            1...n
+//        0                    1             -1
+// The 'mode' internal state variable encapsulates the reader and writer state into a single quantity,
+// as tabulated above
+
+// Implementation uses a Cell for the mode state variable.
+// Because Cell is not thread-safe, all logic to check and manipulate it needs to be Mutex protected.
 pub struct RwLock {
-    // Cell is not an appropriate implementation for a multitasking platform.
-    // Added panics to make this blow up if it is used. Long term, we need to use FreeRTOS mutexes or semaphores.
-    mode: Cell<isize>,
+    mode: Mutex<Cell<isize>>,
 }
 
 pub type MovableRwLock = RwLock;
@@ -15,60 +31,92 @@ impl RwLock {
     #[inline]
     #[rustc_const_stable(feature = "const_locks", since = "1.63.0")]
     pub const fn new() -> RwLock {
-        RwLock { mode: Cell::new(0) }
+        RwLock { mode: Mutex::new(Cell::new(0)) }
     }
 
     #[inline]
-    pub unsafe fn read(&self) {
-        panic!("rwlock Not implemented for FreeRTOS");
-        let m = self.mode.get();
-        if m >= 0 {
-            self.mode.set(m + 1);
-        } else {
-            rtabort!("rwlock locked for writing");
+    pub fn read(&self) {
+        // Repeat until the lock is obtained
+        loop {
+            // Get the mutex for exclusive access to 'mode'
+            let mut mode = self.mode.lock().unwrap();
+
+            let cur_val = mode.get();
+            // If value is 0 (unlocked) or >0 (read locked), increment to add another read lock
+            if cur_val >= 0 {
+                mode.set(cur_val + 1);
+                return; // success setting a read lock
+            }
+            // Mutex is unlocked by going out of scope
         }
     }
 
     #[inline]
-    pub unsafe fn try_read(&self) -> bool {
-        panic!("rwlock Not implemented for FreeRTOS");
-        let m = self.mode.get();
-        if m >= 0 {
-            self.mode.set(m + 1);
-            true
+    pub fn try_read(&self) -> bool {
+        // Get the mutex for exclusive access to 'mode'
+        let mut mode = self.mode.lock().unwrap();
+
+        // If value is 0 (unlocked) or >0 (read locked), increment to add another read lock
+        let cur_val = mode.get();
+        if cur_val >= 0 {
+            mode.set(cur_val + 1);
+            true // success setting a read lock
+        } else {
+            false // read lock could not be added
+        }
+        // Mutex is unlocked by going out of scope
+    }
+
+    #[inline]
+    pub fn write(&self) {
+        // Repeat until the lock is obtained
+        loop {
+            let mut mode = self.mode.lock().unwrap();
+
+            let cur_val = mode.get();
+            // If value is 0 (unlocked), set it to -1 (write locked)
+            if cur_val == 0 {
+                mode.set(-1);
+                return; // success setting the write lock
+            }
+            // Mutex is unlocked by going out of scope
+        }
+    }
+
+    #[inline]
+    pub fn try_write(&self) -> bool {
+        // Get the mutex for exclusive access to 'mode'
+        let mut mode = self.mode.lock().unwrap();
+
+        let cur_val = mode.get();
+        // If value is 0 (unlocked), set it to -1 (write locked)
+        if cur_val == 0 {
+            mode.set(-1);
+            true // success setting the write lock
         } else {
             false
         }
+        // Mutex is unlocked by going out of scope
     }
 
     #[inline]
-    pub unsafe fn write(&self) {
-        panic!("rwlock Not implemented for FreeRTOS");
-        if self.mode.replace(-1) != 0 {
-            rtabort!("rwlock locked for reading")
+    pub fn read_unlock(&self) {
+        // Get the mutex for exclusive access to 'mode'
+        let mut mode = self.mode.lock().unwrap();
+
+        let cur_val = mode.get();
+        // If value is >0 (read locked), decrement to remove one of the read locks
+        if cur_val > 0 {
+            mode.set(cur_val - 1);
         }
+        // Mutex is unlocked by going out of scope
     }
 
     #[inline]
-    pub unsafe fn try_write(&self) -> bool {
-        panic!("rwlock Not implemented for FreeRTOS");
-        if self.mode.get() == 0 {
-            self.mode.set(-1);
-            true
-        } else {
-            false
-        }
-    }
-
-    #[inline]
-    pub unsafe fn read_unlock(&self) {
-        panic!("rwlock Not implemented for FreeRTOS");
-        self.mode.set(self.mode.get() - 1);
-    }
-
-    #[inline]
-    pub unsafe fn write_unlock(&self) {
-        panic!("rwlock Not implemented for FreeRTOS");
-        assert_eq!(self.mode.replace(0), -1);
+    pub fn write_unlock(&self) {
+        // Get the mutex to access 'mode'.
+        // Replace with 0 (= unlock), checking that the previous value was -1 (write locked)
+        assert_eq!(self.mode.lock().unwrap().replace(0), -1);
+        // Mutex is unlocked by going out of scope
     }
 }
