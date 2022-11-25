@@ -15,14 +15,14 @@ unsafe impl Sync for Thread {}
 
 // This wrapper for the function pointer is necessary to make it Send. Box<dyn FnOnce()> is defined elsewhere (outside our
 // control), and is not Send.
-struct Fptr {
+struct FunctionPtr {
     fptr: Box<dyn FnOnce()>,
 }
-unsafe impl Send for Fptr {}
+unsafe impl Send for FunctionPtr {}
 
 // Task wrapper function unwraps the task's function pointer and calls it. We can't do this directly in the call to
 // freertos_rust::Task::new() because the non-Send function pointer then passes between threads.
-fn launch_task(p: Fptr) {
+fn launch_task(p: FunctionPtr) {
     (p.fptr)();
 }
 
@@ -56,7 +56,7 @@ impl Thread {
         // Note that even though we don't assign the FreeRTOS task name, Rust still maintains thread names (used in panics etc).
         let thread_name = format!("RustThread{}", num_rust_threads);
         num_rust_threads = num_rust_threads + 1;
-        let func_ptr_struct: Fptr = Fptr { fptr: p };
+        let func_ptr_struct: FunctionPtr = FunctionPtr { fptr: p };
 
         // Create and start the FreeRTOS task
         let child_task = freertos_rust::Task::new()
