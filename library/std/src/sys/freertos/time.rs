@@ -1,4 +1,5 @@
 use crate::time::Duration;
+use freertos_rust::*;
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 pub struct Instant(Duration);
@@ -9,8 +10,15 @@ pub struct SystemTime(Duration);
 pub const UNIX_EPOCH: SystemTime = SystemTime(Duration::from_secs(0));
 
 impl Instant {
+    // FreerRTOS provides a tick count and tick duration. We can use this to work out time since booting. FreeRTOS does not 
+    // provide a time of day function (some boards have a real time clock, some do not. We can't assume it exists, and access
+    // to any clock would be HAL-dependent.
+    // By presenting time since boot (instead of time since epoch), we still can measure intervals, which is useful in the code.
     pub fn now() -> Instant {
-        panic!("time not implemented on this platform")
+        unsafe {
+            Instant(Duration::from_millis((freertos_rs_xTaskGetTickCount() * freertos_rs_get_portTICK_PERIOD_MS()) as u64))
+            //TODO: deal with arithmetic wraparound of freertos_rs_xTaskGetTickCount(), which occurs after 49 days.
+        }
     }
 
     pub fn checked_sub_instant(&self, other: &Instant) -> Option<Duration> {
@@ -27,8 +35,15 @@ impl Instant {
 }
 
 impl SystemTime {
+    // FreerRTOS provides a tick count and tick duration. We can use this to work out time since booting. FreeRTOS does not 
+    // provide a time of day function (some boards have a real time clock, some do not. We can't assume it exists, and access
+    // to any clock would be HAL-dependent.
+    // By presenting time since boot (instead of time since epoch), we still can measure intervals, which is useful in the code.
     pub fn now() -> SystemTime {
-        panic!("time not implemented on this platform")
+        unsafe {
+            SystemTime(Duration::from_millis((freertos_rs_xTaskGetTickCount() * freertos_rs_get_portTICK_PERIOD_MS()) as u64))
+            //TODO: deal with arithmetic wraparound of freertos_rs_xTaskGetTickCount(), which occurs after 49 days.
+        }
     }
 
     pub fn sub_time(&self, other: &SystemTime) -> Result<Duration, Duration> {
