@@ -1,11 +1,9 @@
-use crate::sync::atomic::{AtomicBool, Ordering};
 use crate::hint;
+use crate::sync::atomic::{AtomicBool, Ordering};
 
 pub struct Mutex {
-
     is_acquired: AtomicBool,
 }
-
 
 // Mutex new function needs to be const_stable. Unfortunately that means it can't be extern
 // and we can't modify and use the one in the FreeRTOS Rust bindings.
@@ -14,15 +12,13 @@ pub struct Mutex {
 pub type MovableMutex = Mutex;
 
 unsafe impl Send for Mutex {}
-unsafe impl Sync for Mutex {} 
+unsafe impl Sync for Mutex {}
 
 impl Mutex {
     #[inline]
     #[rustc_const_stable(feature = "const_locks", since = "1.63.0")]
     pub const fn new() -> Mutex {
-        Mutex {
-            is_acquired: AtomicBool::new(false)
-        }
+        Mutex { is_acquired: AtomicBool::new(false) }
     }
 
     // AtomicBool::swap() has a similar truth table to 'TestAndSet', making it a suitable basis
@@ -56,11 +52,6 @@ impl Mutex {
     // for successful locking.
     #[inline]
     pub unsafe fn try_lock(&self) -> bool {
-        if self.is_acquired.swap(true, Ordering::AcqRel) {
-            false
-        }
-        else {
-            true
-        }
+        if self.is_acquired.swap(true, Ordering::AcqRel) { false } else { true }
     }
 }
