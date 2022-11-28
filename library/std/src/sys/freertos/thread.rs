@@ -26,7 +26,7 @@ fn launch_task(p: FunctionPtr) {
     (p.fptr)();
 }
 
-pub const DEFAULT_MIN_STACK_SIZE: usize = 512;
+pub const DEFAULT_MIN_STACK_SIZE: usize = 1024; // Below this, anything using std library calls is likely to overflow the stack.
 pub const DEFAULT_MAX_STACK_SIZE: usize = 65535;
 
 impl Thread {
