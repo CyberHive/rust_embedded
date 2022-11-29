@@ -36,7 +36,7 @@ impl TcpStream {
     }
 
     pub fn read(&self, _: &mut [u8]) -> io::Result<usize> {
-        self.0
+        unsupported()
     }
 
     pub fn read_vectored(&self, _: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
@@ -48,7 +48,7 @@ impl TcpStream {
     }
 
     pub fn write(&self, _: &[u8]) -> io::Result<usize> {
-        self.0
+        unsupported()
     }
 
     pub fn write_vectored(&self, _: &[IoSlice<'_>]) -> io::Result<usize> {
@@ -126,7 +126,7 @@ impl TcpListener {
     }
 
     pub fn accept(&self) -> io::Result<(TcpStream, SocketAddr)> {
-        self.0
+        unsupported()
     }
 
     pub fn duplicate(&self) -> io::Result<TcpListener> {
@@ -180,15 +180,15 @@ impl UdpSocket {
     }
 
     pub fn recv_from(&self, _: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
-        self.0
+        unsupported()
     }
 
     pub fn peek_from(&self, _: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
-        self.0
+        unsupported()
     }
 
     pub fn send_to(&self, _: &[u8], _: &SocketAddr) -> io::Result<usize> {
-        self.0
+        unsupported()
     }
 
     pub fn duplicate(&self) -> io::Result<UdpSocket> {
@@ -216,7 +216,7 @@ impl UdpSocket {
     }
 
     pub fn broadcast(&self) -> io::Result<bool> {
-        self.0
+        unsupported()
     }
 
     pub fn set_multicast_loop_v4(&self, _: bool) -> io::Result<()> {
@@ -276,19 +276,19 @@ impl UdpSocket {
     }
 
     pub fn recv(&self, _: &mut [u8]) -> io::Result<usize> {
-        self.0
+        unsupported()
     }
 
     pub fn peek(&self, _: &mut [u8]) -> io::Result<usize> {
-        self.0
+        unsupported()
     }
 
     pub fn send(&self, _: &[u8]) -> io::Result<usize> {
-        self.0
+        unsupported()
     }
 
     pub fn connect(&self, _: io::Result<&SocketAddr>) -> io::Result<()> {
-        self.0
+        unsupported()
     }
 }
 
