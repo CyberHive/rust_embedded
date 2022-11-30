@@ -4,6 +4,11 @@ use crate::net::{Ipv4Addr, Ipv6Addr, Shutdown, SocketAddr};
 use crate::sys::unsupported;
 use crate::time::Duration;
 
+// This module needs some more work. Dependencies between std::net and std::sys::net need to be disentangled, and the right
+// modules and functions routed here. Then we can connect LWiP functions.
+// Until then, the stubbed code has been reinforced with some stronger error reporting with the 'unsupported' macro, to
+// make things blow up rather than silently fail.
+
 pub struct TcpStream(!);
 
 impl TcpStream {
