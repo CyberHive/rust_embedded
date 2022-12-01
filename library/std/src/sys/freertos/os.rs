@@ -6,6 +6,10 @@ use crate::io;
 use crate::marker::PhantomData;
 use crate::path::{self, PathBuf};
 
+// FreeRTOS does not have a filesystem unless FreeRTOS-plus-FAT is used.
+// For compatibility with 'vanilla' FreeRTOS, and since we don't rely on a filesystem, these functions are stubbed and raise
+// errors.
+
 pub fn errno() -> i32 {
     0
 }
@@ -25,7 +29,7 @@ pub fn chdir(_: &path::Path) -> io::Result<()> {
 pub struct SplitPaths<'a>(!, PhantomData<&'a ()>);
 
 pub fn split_paths(_unparsed: &OsStr) -> SplitPaths<'_> {
-    panic!("unsupported")
+    panic!("not supported on FreeRTOS platform")
 }
 
 impl<'a> Iterator for SplitPaths<'a> {
@@ -48,14 +52,14 @@ where
 
 impl fmt::Display for JoinPathsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        "not supported on this platform yet".fmt(f)
+        "not supported on FreeRTOS platform".fmt(f)
     }
 }
 
 impl StdError for JoinPathsError {
     #[allow(deprecated)]
     fn description(&self) -> &str {
-        "not supported on this platform yet"
+        "not supported on FreeRTOS platform"
     }
 }
 
@@ -73,26 +77,31 @@ impl Iterator for Env {
 }
 
 pub fn env() -> Env {
-    panic!("not supported on this platform")
+    panic!("not supported on FreeRTOS platform")
 }
 
 pub fn getenv(_: &OsStr) -> Option<OsString> {
+    // getenv is actually called by panic! and probably other std functions. Although not supported, this needs to be benign.
     None
 }
 
 pub fn setenv(_: &OsStr, _: &OsStr) -> io::Result<()> {
-    Err(io::const_io_error!(io::ErrorKind::Unsupported, "cannot set env vars on this platform"))
+    Err(io::const_io_error!(io::ErrorKind::Unsupported, "cannot set env vars on FreeRTOS platform"))
 }
 
 pub fn unsetenv(_: &OsStr) -> io::Result<()> {
-    Err(io::const_io_error!(io::ErrorKind::Unsupported, "cannot unset env vars on this platform"))
+    Err(io::const_io_error!(
+        io::ErrorKind::Unsupported,
+        "cannot unset env vars on FreeRTOS platform"
+    ))
 }
 
 pub fn temp_dir() -> PathBuf {
-    panic!("no filesystem on this platform")
+    panic!("no filesystem on FreeRTOS platform")
 }
 
 pub fn home_dir() -> Option<PathBuf> {
+    panic!("no filesystem on FreeRTOS platform");
     None
 }
 
@@ -101,5 +110,5 @@ pub fn exit(_code: i32) -> ! {
 }
 
 pub fn getpid() -> u32 {
-    panic!("no pids on this platform")
+    panic!("no pids on FreeRTOS platform")
 }
