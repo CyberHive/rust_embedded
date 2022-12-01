@@ -81,7 +81,7 @@ pub fn env() -> Env {
 }
 
 pub fn getenv(_: &OsStr) -> Option<OsString> {
-    // getenv is actually called by panbic! and probably other std functions. Although not supported, this needs to be benign.
+    // getenv is actually called by panic! and probably other std functions. Although not supported, this needs to be benign.
     None
 }
 
