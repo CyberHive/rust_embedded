@@ -8,6 +8,7 @@ use crate::sys::unsupported;
 use crate::time::Duration;
 use core::ffi::{c_int, c_long, c_uint};
 
+//TODO: empty structure with 'never' type
 pub struct TcpStream(!);
 
 impl TcpStream {
@@ -144,6 +145,7 @@ impl fmt::Debug for TcpStream {
     }
 }
 
+//TODO: empty structure with 'never' type
 pub struct TcpListener(!);
 
 impl TcpListener {
@@ -205,6 +207,7 @@ impl fmt::Debug for TcpListener {
     }
 }
 
+//TODO: empty structure with 'never' type
 pub struct UdpSocket(!);
 
 impl UdpSocket {
@@ -371,6 +374,7 @@ impl fmt::Debug for UdpSocket {
     }
 }
 
+//TODO: empty structure with 'never' type
 pub struct LookupHost(!);
 
 impl LookupHost {
@@ -575,8 +579,6 @@ pub mod netc {
     //###########################################################################################################################
 }
 
-//DH placeholders for more stuff
-//TODO: complete filling in the missing functions, stubbed
 //TODO: fill in the correct implementations
 pub fn init() {
     println!("FreeRTOS net init");
