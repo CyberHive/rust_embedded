@@ -13,134 +13,134 @@ pub struct TcpStream(!);
 
 impl TcpStream {
     pub fn connect(_: io::Result<&SocketAddr>) -> io::Result<TcpStream> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn connect_timeout(_: &SocketAddr, _: Duration) -> io::Result<TcpStream> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn set_read_timeout(&self, _: Option<Duration>) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_write_timeout(&self, _: Option<Duration>) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn read_timeout(&self) -> io::Result<Option<Duration>> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn write_timeout(&self) -> io::Result<Option<Duration>> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn peek(&self, _: &mut [u8]) -> io::Result<usize> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn read(&self, _: &mut [u8]) -> io::Result<usize> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn read_vectored(&self, _: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn is_read_vectored(&self) -> bool {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn write(&self, _: &[u8]) -> io::Result<usize> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn write_vectored(&self, _: &[IoSlice<'_>]) -> io::Result<usize> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn is_write_vectored(&self) -> bool {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn peer_addr(&self) -> io::Result<SocketAddr> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn socket_addr(&self) -> io::Result<SocketAddr> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn shutdown(&self, _: Shutdown) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn duplicate(&self) -> io::Result<TcpStream> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_linger(&self, _: Option<Duration>) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn linger(&self) -> io::Result<Option<Duration>> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_nodelay(&self, _: bool) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn nodelay(&self) -> io::Result<bool> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_ttl(&self, _: u32) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn ttl(&self) -> io::Result<u32> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn take_error(&self) -> io::Result<Option<io::Error>> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_nonblocking(&self, _: bool) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 }
 
 impl fmt::Debug for TcpStream {
     fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 }
@@ -150,59 +150,59 @@ pub struct TcpListener(!);
 
 impl TcpListener {
     pub fn bind(_: io::Result<&SocketAddr>) -> io::Result<TcpListener> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn socket_addr(&self) -> io::Result<SocketAddr> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn accept(&self) -> io::Result<(TcpStream, SocketAddr)> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn duplicate(&self) -> io::Result<TcpListener> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_ttl(&self, _: u32) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn ttl(&self) -> io::Result<u32> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_only_v6(&self, _: bool) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn only_v6(&self) -> io::Result<bool> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn take_error(&self) -> io::Result<Option<io::Error>> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_nonblocking(&self, _: bool) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 }
 
 impl fmt::Debug for TcpListener {
     fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 }
@@ -212,164 +212,164 @@ pub struct UdpSocket(!);
 
 impl UdpSocket {
     pub fn bind(_: io::Result<&SocketAddr>) -> io::Result<UdpSocket> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn peer_addr(&self) -> io::Result<SocketAddr> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn socket_addr(&self) -> io::Result<SocketAddr> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn recv_from(&self, _: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn peek_from(&self, _: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn send_to(&self, _: &[u8], _: &SocketAddr) -> io::Result<usize> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn duplicate(&self) -> io::Result<UdpSocket> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_read_timeout(&self, _: Option<Duration>) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_write_timeout(&self, _: Option<Duration>) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn read_timeout(&self) -> io::Result<Option<Duration>> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn write_timeout(&self) -> io::Result<Option<Duration>> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_broadcast(&self, _: bool) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn broadcast(&self) -> io::Result<bool> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn set_multicast_loop_v4(&self, _: bool) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn multicast_loop_v4(&self) -> io::Result<bool> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_multicast_ttl_v4(&self, _: u32) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn multicast_ttl_v4(&self) -> io::Result<u32> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_multicast_loop_v6(&self, _: bool) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn multicast_loop_v6(&self) -> io::Result<bool> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn join_multicast_v4(&self, _: &Ipv4Addr, _: &Ipv4Addr) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn join_multicast_v6(&self, _: &Ipv6Addr, _: u32) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn leave_multicast_v4(&self, _: &Ipv4Addr, _: &Ipv4Addr) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn leave_multicast_v6(&self, _: &Ipv6Addr, _: u32) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_ttl(&self, _: u32) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn ttl(&self) -> io::Result<u32> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn take_error(&self) -> io::Result<Option<io::Error>> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn set_nonblocking(&self, _: bool) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         self.0
     }
 
     pub fn recv(&self, _: &mut [u8]) -> io::Result<usize> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn peek(&self, _: &mut [u8]) -> io::Result<usize> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn send(&self, _: &[u8]) -> io::Result<usize> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 
     pub fn connect(&self, _: io::Result<&SocketAddr>) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         unsupported()
     }
 }
 
 impl fmt::Debug for UdpSocket {
-    //TODO: missing implementation
     fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        todo!("missing implementation");
         self.0
     }
 }
@@ -378,34 +378,34 @@ impl fmt::Debug for UdpSocket {
 pub struct LookupHost(!);
 
 impl LookupHost {
-    //TODO: missing implementation
     pub fn port(&self) -> u16 {
+        todo!("missing implementation");
         self.0
     }
 }
 
 impl Iterator for LookupHost {
-    //TODO: missing implementation
     type Item = SocketAddr;
     fn next(&mut self) -> Option<SocketAddr> {
+        todo!("missing implementation");
         self.0
     }
 }
 
 impl TryFrom<&str> for LookupHost {
-    //TODO: missing implementation
     type Error = io::Error;
 
     fn try_from(_v: &str) -> io::Result<LookupHost> {
+        todo!("missing implementation");
         unsupported()
     }
 }
 
 impl<'a> TryFrom<(&'a str, u16)> for LookupHost {
-    //TODO: missing implementation
     type Error = io::Error;
 
     fn try_from(_v: (&'a str, u16)) -> io::Result<LookupHost> {
+        todo!("missing implementation");
         unsupported()
     }
 }
@@ -529,51 +529,51 @@ pub mod netc {
     pub fn setsockopt() {}
 
     pub fn getsockopt() {
-        //TODO: missing implementation
+        todo!("missing implementation");
     }
 
     pub fn bind() {
-        //TODO: missing implementation
+        todo!("missing implementation");
     }
 
     pub fn connect() {
-        //TODO: missing implementation
+        todo!("missing implementation");
     }
 
     pub fn listen() {
-        //TODO: missing implementation
+        todo!("missing implementation");
     }
 
     pub fn getsockname() {
-        //TODO: missing implementation
+        todo!("missing implementation");
     }
 
     pub fn send() {
-        //TODO: missing implementation
+        todo!("missing implementation");
     }
 
     pub fn sendto() {
-        //TODO: missing implementation
+        todo!("missing implementation");
     }
 
     pub fn recv() {
-        //TODO: missing implementation
+        todo!("missing implementation");
     }
 
     pub fn recvfrom() {
-        //TODO: missing implementation
+        todo!("missing implementation");
     }
 
     pub fn getpeername() {
-        //TODO: missing implementation
+        todo!("missing implementation");
     }
 
     pub fn getaddrinfo() {
-        //TODO: missing implementation
+        todo!("missing implementation");
     }
 
     pub fn freeaddrinfo() {
-        //TODO: missing implementation
+        todo!("missing implementation");
     }
 
     //###########################################################################################################################
@@ -619,7 +619,7 @@ pub struct Socket {
 
 impl Socket {
     pub fn new(addr: &SocketAddr, socket_type: c_int) -> io::Result<Socket> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         let family = match *addr {
             SocketAddr::V4(..) => netc::AF_INET,
             SocketAddr::V6(..) => netc::AF_INET6,
@@ -629,12 +629,12 @@ impl Socket {
     }
 
     pub fn connect_timeout(&self, addr: &SocketAddr, timeout: Duration) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
     pub fn accept(&self, storage: *mut netc::sockaddr, len: *mut c_int) -> io::Result<Socket> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
@@ -644,7 +644,7 @@ impl Socket {
     }
 
     fn recv_with_flags(&self, buf: &mut [u8], flags: c_int) -> io::Result<usize> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
@@ -653,7 +653,7 @@ impl Socket {
     }
 
     pub fn read_vectored(&self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
@@ -670,7 +670,7 @@ impl Socket {
         buf: &mut [u8],
         flags: c_int,
     ) -> io::Result<(usize, SocketAddr)> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
@@ -683,7 +683,7 @@ impl Socket {
     }
 
     pub fn write_vectored(&self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
@@ -692,47 +692,47 @@ impl Socket {
     }
 
     pub fn set_timeout(&self, dur: Option<Duration>, kind: c_int) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
     pub fn timeout(&self, kind: c_int) -> io::Result<Option<Duration>> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
     pub fn shutdown(&self, how: Shutdown) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
     pub fn set_nonblocking(&self, nonblocking: bool) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
     pub fn set_linger(&self, linger: Option<Duration>) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
     pub fn linger(&self) -> io::Result<Option<Duration>> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
     pub fn set_nodelay(&self, nodelay: bool) -> io::Result<()> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
     pub fn nodelay(&self) -> io::Result<bool> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
     pub fn take_error(&self) -> io::Result<Option<io::Error>> {
-        //TODO: missing implementation
+        todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
