@@ -413,6 +413,9 @@ impl<'a> TryFrom<(&'a str, u16)> for LookupHost {
 #[allow(nonstandard_style)]
 pub mod netc {
     //###########################################################################################################################
+    use crate::sys::net::RawSocket;
+    use core::ffi::{c_char, c_int, c_long, c_uint, c_void};
+
     // TODO: These constants borrowed from Windows implementation. They need to correlate to equivalents in LwIP.
     pub const AF_INET6: i32 = 10;
     pub const AF_INET: i32 = 2;
@@ -441,8 +444,8 @@ pub mod netc {
     pub const SO_SNDTIMEO: i32 = 4101;
     pub const SO_LINGER: i32 = 128;
     pub const TCP_NODELAY: i32 = 1;
-    pub const MSG_PEEK: core::ffi::c_int = 1;
-    pub const FIONBIO: core::ffi::c_long = 0x8008667eu32 as core::ffi::c_long;
+    pub const MSG_PEEK: c_int = 1;
+    pub const FIONBIO: c_long = 0x8008667eu32 as c_long;
     pub const EAI_NONAME: i32 = -2200;
     pub const EAI_SERVICE: i32 = -2201;
     pub const EAI_FAIL: i32 = -2202;
@@ -488,13 +491,13 @@ pub mod netc {
     #[repr(C)]
     //#[derive(Debug, Copy, Clone)]
     pub struct addrinfo {
-        pub ai_flags: core::ffi::c_int,
-        pub ai_family: core::ffi::c_int,
-        pub ai_socktype: core::ffi::c_int,
-        pub ai_protocol: core::ffi::c_int,
+        pub ai_flags: c_int,
+        pub ai_family: c_int,
+        pub ai_socktype: c_int,
+        pub ai_protocol: c_int,
         pub ai_addrlen: socklen_t,
         pub ai_addr: *mut sockaddr,
-        pub ai_canonname: *mut core::ffi::c_char,
+        pub ai_canonname: *mut c_char,
         pub ai_next: *mut addrinfo,
     }
 
@@ -507,72 +510,118 @@ pub mod netc {
     #[repr(C)]
     pub struct ipv6_mreq {
         pub ipv6mr_multiaddr: in6_addr,
-        pub ipv6mr_interface: core::ffi::c_uint,
+        pub ipv6mr_interface: c_uint,
     }
 
     #[repr(C)]
     pub struct sockaddr_storage {
         pub s2_len: u8,
         pub ss_family: sa_family_t,
-        pub s2_data1: [core::ffi::c_char; 2usize],
+        pub s2_data1: [c_char; 2usize],
         pub s2_data2: [u32; 3usize],
     }
 
     //###########################################################################################################################
 
     //TODO: fill this in
-    #[derive(Copy, Clone)]
+    //#[derive(Copy, Clone)]
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub struct sockaddr {}
 
     //###########################################################################################################################
     //TODO: Oddly, other implementations don't seem to have these. Need to work out where they are hidden!
-    pub fn setsockopt() {}
-
-    pub fn getsockopt() {
+    pub fn setsockopt(
+        sock: RawSocket,
+        level: c_int,
+        optname: c_int,
+        optval: *const c_void,
+        optlen: socklen_t,
+    ) -> c_int {
         todo!("missing implementation");
+        0
     }
 
-    pub fn bind() {
+    pub fn getsockopt(
+        sock: RawSocket,
+        level: c_int,
+        optname: c_int,
+        optval: *mut c_void,
+        optlen: *mut socklen_t,
+    ) -> c_int {
         todo!("missing implementation");
+        0
     }
 
-    pub fn connect() {
+    pub fn bind(sock: RawSocket, name: *const sockaddr, namelen: socklen_t) -> c_int {
         todo!("missing implementation");
+        0
     }
 
-    pub fn listen() {
+    pub fn connect(sock: RawSocket, name: *const sockaddr, namelen: socklen_t) -> c_int {
         todo!("missing implementation");
+        0
     }
 
-    pub fn getsockname() {
+    pub fn listen(sock: RawSocket, backlog: c_int) -> c_int {
         todo!("missing implementation");
+        0
     }
 
-    pub fn send() {
+    pub fn getsockname(sock: RawSocket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
         todo!("missing implementation");
+        0
     }
 
-    pub fn sendto() {
+    pub fn send(sock: RawSocket, mem: *const c_void, len: i32, flags: c_int) -> i32 {
         todo!("missing implementation");
+        0
     }
 
-    pub fn recv() {
+    pub fn sendto(
+        sock: RawSocket,
+        mem: *const c_void,
+        len: i32,
+        flags: c_int,
+        to: *const sockaddr,
+        tolen: socklen_t,
+    ) -> i32 {
         todo!("missing implementation");
+        0
     }
 
-    pub fn recvfrom() {
+    pub fn recv(s: RawSocket, mem: *mut c_void, len: i32, flags: c_int) -> i32 {
         todo!("missing implementation");
+        0
     }
 
-    pub fn getpeername() {
+    pub fn recvfrom(
+        sock: RawSocket,
+        mem: *mut c_void,
+        len: i32,
+        flags: c_int,
+        from: *mut sockaddr,
+        fromlen: *mut socklen_t,
+    ) -> i32 {
         todo!("missing implementation");
+        0
     }
 
-    pub fn getaddrinfo() {
+    pub fn getpeername(sock: RawSocket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
         todo!("missing implementation");
+        0
     }
 
-    pub fn freeaddrinfo() {
+    pub fn getaddrinfo(
+        nodename: *const c_char,
+        servname: *const c_char,
+        hints: *const addrinfo,
+        res: *mut *mut addrinfo,
+    ) -> c_int {
+        todo!("missing implementation");
+        0
+    }
+
+    pub fn freeaddrinfo(ai: *mut addrinfo) {
         todo!("missing implementation");
     }
 
@@ -613,11 +662,13 @@ where
 
 //###########################################################################################################################
 //###Socket 'empty shell' functions adapted from Windows implementation
+#[stable(feature = "lwip_network", since = "1.64.0")]
 pub struct Socket {
     socket_index: u32,
 }
 
 impl Socket {
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn new(addr: &SocketAddr, socket_type: c_int) -> io::Result<Socket> {
         todo!("missing implementation");
         let family = match *addr {
@@ -628,16 +679,19 @@ impl Socket {
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn connect_timeout(&self, addr: &SocketAddr, timeout: Duration) -> io::Result<()> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
-    pub fn accept(&self, storage: *mut netc::sockaddr, len: *mut c_int) -> io::Result<Socket> {
+    #[stable(feature = "lwip_network", since = "1.64.0")]
+    pub fn accept(&self, storage: *mut netc::sockaddr, len: *mut c_uint) -> io::Result<Socket> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn duplicate(&self) -> io::Result<Socket> {
         //Ok(Self(self.0.try_clone()?))
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
@@ -648,19 +702,23 @@ impl Socket {
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
         self.recv_with_flags(buf, 0)
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn read_vectored(&self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn is_read_vectored(&self) -> bool {
         true
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn peek(&self, buf: &mut [u8]) -> io::Result<usize> {
         self.recv_with_flags(buf, MSG_PEEK)
     }
@@ -674,63 +732,76 @@ impl Socket {
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn recv_from(&self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
         self.recv_from_with_flags(buf, 0)
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn peek_from(&self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
         self.recv_from_with_flags(buf, MSG_PEEK)
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn write_vectored(&self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn is_write_vectored(&self) -> bool {
         true
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn set_timeout(&self, dur: Option<Duration>, kind: c_int) -> io::Result<()> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn timeout(&self, kind: c_int) -> io::Result<Option<Duration>> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn shutdown(&self, how: Shutdown) -> io::Result<()> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn set_nonblocking(&self, nonblocking: bool) -> io::Result<()> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn set_linger(&self, linger: Option<Duration>) -> io::Result<()> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn linger(&self) -> io::Result<Option<Duration>> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn set_nodelay(&self, nodelay: bool) -> io::Result<()> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn nodelay(&self) -> io::Result<bool> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn take_error(&self) -> io::Result<Option<io::Error>> {
         todo!("missing implementation");
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
@@ -738,6 +809,7 @@ impl Socket {
 
     // This is used by sys_common code to abstract over Windows and Unix.
     // Probably means not needed here.
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn as_raw(&self) -> RawSocket {
         let mut raw_socket = RawSocket { socket_index: 1 }; //TODO: get rid of RawSocket completely
         raw_socket
@@ -752,6 +824,8 @@ impl<'a> Read for &'a Socket {
 }
 
 //TODO:RawSocket is a Windows-ism that needs to be eliminated. We just have sockets.
+#[stable(feature = "lwip_network", since = "1.64.0")]
+#[derive(Debug, Copy, Clone)]
 pub struct RawSocket {
     socket_index: u32,
 }
