@@ -12,7 +12,7 @@ use crate::sys::net::netc as c;
 use crate::sys::net::{cvt, cvt_gai, cvt_r, init, wrlen_t, Socket};
 use crate::sys_common::{AsInner, FromInner, IntoInner};
 use crate::time::Duration;
-use core::ffi::{c_int, c_long, c_uint, c_ulong, c_ushort, c_void};
+use core::ffi::{c_int, c_void};
 
 //use libc::{c_int, c_void};
 
