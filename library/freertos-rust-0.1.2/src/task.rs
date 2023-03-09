@@ -103,7 +103,7 @@ impl Task {
         }
     }
 
-    unsafe fn spawn_inner<'a>(f: Box<dyn FnOnce()>,
+    unsafe fn spawn_inner(f: Box<dyn FnOnce()>,
                               name: &str,
                               stack_size: u16,
                               priority: TaskPriority)
@@ -281,7 +281,7 @@ pub struct FreeRtosSchedulerState {
 }
 
 impl fmt::Display for FreeRtosSchedulerState {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         fmt.write_str("FreeRTOS tasks\r\n")?;
 
         write!(fmt, "{id: <6} | {name: <16} | {state: <9} | {priority: <8} | {stack: >10} | {cpu_abs: >10} | {cpu_rel: >4}\r\n",
