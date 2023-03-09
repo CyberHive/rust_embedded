@@ -817,7 +817,7 @@ impl Socket {
     }
 }
 
-#[unstable(reason = "not public", issue = "none", feature = "fd_read")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 impl<'a> Read for &'a Socket {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         (**self).read(buf)
