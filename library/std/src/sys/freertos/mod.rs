@@ -1,4 +1,4 @@
-#![deny(unsafe_op_in_unsafe_fn)]
+#![allow(missing_docs, nonstandard_style, unused_unsafe, unused_variables, warnings)]
 
 pub mod alloc;
 pub mod args;
@@ -27,4 +27,4 @@ mod common;
 pub use common::*;
 
 //Rust bindings for FreeRTOS OS
-use freertos_rust::*;
+//use freertos_rust::*;
