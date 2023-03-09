@@ -130,6 +130,7 @@ static TARGETS: &[&str] = &[
     "thumbv6m-none-eabi",
     "thumbv7em-none-eabi",
     "thumbv7em-none-eabihf",
+    "thumbv7em-freertos-eabihf",
     "thumbv7m-none-eabi",
     "thumbv8m.base-none-eabi",
     "thumbv8m.main-none-eabi",
