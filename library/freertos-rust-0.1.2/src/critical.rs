@@ -33,14 +33,14 @@ impl<T> ExclusiveData<T> {
         }
     }
 
-    pub fn lock(&self) -> Result<ExclusiveDataGuard<T>, FreeRtosError> {
+    pub fn lock(&self) -> Result<ExclusiveDataGuard<'_, T>, FreeRtosError> {
         Ok(ExclusiveDataGuard {
             __data: &self.data,
             __lock: CriticalRegion::enter()
         })
     }
 
-    pub fn lock_from_isr(&self, _context: &mut crate::isr::InterruptContext) -> Result<ExclusiveDataGuardIsr<T>, FreeRtosError> {
+    pub fn lock_from_isr(&self, _context: &mut crate::isr::InterruptContext) -> Result<ExclusiveDataGuardIsr<'_, T>, FreeRtosError> {
         Ok(ExclusiveDataGuardIsr {
             __data: &self.data            
         })
@@ -48,7 +48,7 @@ impl<T> ExclusiveData<T> {
 }
 
 /// Holds the mutex until we are dropped
-pub struct ExclusiveDataGuard<'a, T: ?Sized + 'a> {
+pub struct ExclusiveDataGuard<'a, T: ?Sized> {
     __data: &'a UnsafeCell<T>,
     __lock: CriticalRegion
 }
@@ -68,7 +68,7 @@ impl<'mutex, T: ?Sized> DerefMut for ExclusiveDataGuard<'mutex, T> {
 }
 
 
-pub struct ExclusiveDataGuardIsr<'a, T: ?Sized + 'a> {
+pub struct ExclusiveDataGuardIsr<'a, T: ?Sized> {
     __data: &'a UnsafeCell<T>
 }
 
