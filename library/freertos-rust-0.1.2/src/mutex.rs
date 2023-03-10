@@ -18,7 +18,7 @@ pub struct MutexImpl<T: ?Sized, M> {
 }
 
 impl<T: ?Sized, M> fmt::Debug for MutexImpl<T, M> where M: MutexInnerImpl + fmt::Debug {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Mutex address: {:?}", self.mutex)
     }
 }
@@ -45,7 +45,7 @@ impl<T> MutexImpl<T, MutexRecursive> {
 
 impl<T, M> MutexImpl<T, M> where M: MutexInnerImpl {
     /// Try to obtain a lock and mutable access to our inner value
-    pub fn lock<D: DurationTicks>(&self, max_wait: D) -> Result<MutexGuard<T, M>, FreeRtosError> {
+    pub fn lock<D: DurationTicks>(&self, max_wait: D) -> Result<MutexGuard<'_, T, M>, FreeRtosError> {
         self.mutex.take(max_wait)?;
 
         Ok(MutexGuard {
@@ -73,7 +73,7 @@ impl<T, M> MutexImpl<T, M> where M: MutexInnerImpl {
 }
 
 /// Holds the mutex until we are dropped
-pub struct MutexGuard<'a, T: ?Sized + 'a, M: 'a> where M: MutexInnerImpl {
+pub struct MutexGuard<'a, T: ?Sized, M> where M: MutexInnerImpl {
     __mutex: &'a M,
     __data: &'a UnsafeCell<T>,
 }
@@ -99,7 +99,7 @@ impl<'a, T: ?Sized, M> Drop for MutexGuard<'a, T, M> where M: MutexInnerImpl {
 }
 
 
-pub trait MutexInnerImpl where Self: Sized + Drop {
+pub trait MutexInnerImpl where Self: Sized {
     fn create() -> Result<Self, FreeRtosError>;
     fn take<D: DurationTicks>(&self, max_wait: D) -> Result<(), FreeRtosError>;
     fn give(&self);
@@ -138,7 +138,7 @@ impl Drop for MutexNormal {
 }
 
 impl fmt::Debug for MutexNormal {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.0)
     }
 }
@@ -176,7 +176,7 @@ impl Drop for MutexRecursive {
 }
 
 impl fmt::Debug for MutexRecursive {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.0)
     }
 }

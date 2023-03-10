@@ -1,7 +1,3 @@
-use crate::base::*;
-use crate::utils::*;
-use crate::prelude::v1::String;
-
 type Callback = fn();
 
 pub struct FreeRtosHooks {
@@ -13,9 +9,12 @@ impl FreeRtosHooks {
         self.on_assert = c;
     }
 
+//Removed as never called
+/*
     fn do_on_assert(&self) {
         (self.on_assert)();
     }
+*/
 }
 
 // TODO: It's unsafe to use, we should build some safe wrapper around

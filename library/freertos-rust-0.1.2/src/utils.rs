@@ -4,9 +4,10 @@ use crate::base::*;
 
 #[derive(Debug, Copy, Clone)]
 pub struct TypeSizeError {
-    id: usize,
-    c_size: usize,
-    rust_size: usize
+    // Underscore prefix to suppress 'never read anywhere' warning
+    _id: usize,
+    _c_size: usize,
+    _rust_size: usize
 }
 
 /// Perform checks whether the C FreeRTOS shim and Rust agree on the sizes of used types.
@@ -38,9 +39,9 @@ pub fn shim_sanity_check() -> Result<(), TypeSizeError> {
 
         if c_size != check.1 as u8 {
             return Err(TypeSizeError {
-                id: check.0 as usize,
-                c_size: c_size as usize,
-                rust_size: check.1
+                _id: check.0 as usize,
+                _c_size: c_size as usize,
+                _rust_size: check.1
             });
         }
     }

@@ -16,6 +16,7 @@
 
 #![allow(missing_docs)]
 #![allow(missing_debug_implementations)]
+#![allow(unused_unsafe, dead_code)] // Added to suppress warnings whilst FreeRTOS stuff is being plumbed in.
 
 #[cfg(test)]
 mod tests;
