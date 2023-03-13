@@ -637,24 +637,23 @@ pub mod netc {
                     pbuf_alloc(pbuf_layer_PBUF_TRANSPORT, len as u16, pbuf_type_PBUF_RAM);
                 if udp_buffer.is_null() {
                     return -1;
-                } else {
-                    ptr::copy_nonoverlapping(
-                        mem as *mut u8,
-                        ((*udp_buffer).payload) as *mut u8,
-                        len as usize,
-                    );
-                    let retval = udp_sendto(
-                        sock.socket_handle as *mut udp_pcb,
-                        udp_buffer,
-                        &((*to).ipaddr),
-                        lwip_htons((*to).port), //###Not expecting htons to be necessary here. Further investigation needed!
-                    );
+                }
+                ptr::copy_nonoverlapping(
+                    mem as *mut u8,
+                    ((*udp_buffer).payload) as *mut u8,
+                    len as usize,
+                );
+                let retval = udp_sendto(
+                    sock.socket_handle as *mut udp_pcb,
+                    udp_buffer,
+                    &((*to).ipaddr),
+                    lwip_htons((*to).port), //###Not expecting htons to be necessary here. Further investigation needed!
+                );
 
-                    pbuf_free(udp_buffer);
-                    match retval {
-                        0 => len, // Success case: return bytes sent
-                        _ => -1,  // Error case
-                    }
+                pbuf_free(udp_buffer);
+                match retval {
+                    0 => len, // Success case: return bytes sent
+                    _ => -1,  // Error case
                 }
             },
             // TCP sendto? Makes no sense.
@@ -760,7 +759,7 @@ impl Socket {
                 if udp_pcb.is_null() {
                     Err(io::const_io_error!(io::ErrorKind::Other, "Cannot create UDP socket"))
                 } else {
-                    let mut socket =
+                    let socket =
                         Socket { socket_handle: udp_pcb as *mut c_void, socket_type: socket_type };
                     Ok(socket)
                 }
@@ -772,7 +771,7 @@ impl Socket {
                 if tcp_pcb.is_null() {
                     Err(io::const_io_error!(io::ErrorKind::Other, "Cannot create TCP socket"))
                 } else {
-                    let mut socket =
+                    let socket =
                         Socket { socket_handle: tcp_pcb as *mut c_void, socket_type: socket_type };
                     Ok(socket)
                 }
