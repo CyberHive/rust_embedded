@@ -536,8 +536,12 @@ pub mod netc {
     }
 
     pub fn connect(sock: RawSocket, name: *const sockaddr, namelen: socklen_t) -> c_int {
-        todo!("missing netc::connect implementation");
-        0
+        let retval =
+            unsafe { lwip_connect(sock.socket_handle, name as *const super::sockaddr, namelen) };
+        match retval {
+            0 => 0,
+            _ => -1,
+        }
     }
 
     pub fn listen(sock: RawSocket, backlog: c_int) -> c_int {
@@ -551,8 +555,16 @@ pub mod netc {
     }
 
     pub fn send(sock: RawSocket, mem: *const c_void, len: i32, flags: c_int) -> i32 {
-        todo!("missing netc::send implementation");
-        0
+        unsafe {
+            let retval = lwip_send(
+                sock.socket_handle,
+                mem,
+                len,
+                0, // flags
+            );
+
+            retval
+        }
     }
 
     pub fn sendto(
@@ -583,9 +595,10 @@ pub mod netc {
         }
     }
 
-    pub fn recv(s: RawSocket, mem: *mut c_void, len: i32, flags: c_int) -> i32 {
-        todo!("missing netc::recv implementation");
-        0
+    pub fn recv(sock: RawSocket, mem: *mut c_void, len: i32, flags: c_int) -> i32 {
+        let retval = unsafe { lwip_recv(sock.socket_handle, mem, len as size_t, flags) };
+
+        retval
     }
 
     pub fn recvfrom(
@@ -720,8 +733,15 @@ impl Socket {
     }
 
     fn recv_with_flags(&self, buf: &mut [u8], flags: c_int) -> io::Result<usize> {
-        todo!("missing Socket::recv_with_flags implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        let length = cmp::min(buf.len(), <wrlen_t>::MAX as usize) as wrlen_t;
+
+        let result =
+            unsafe { netc::recv(self.as_raw(), buf.as_mut_ptr() as *mut _, length, flags) };
+
+        match result {
+            -1 => Err(io::const_io_error!(io::ErrorKind::Other, "recv failed")),
+            _ => Ok(result as usize),
+        }
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
