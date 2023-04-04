@@ -6,6 +6,7 @@ use crate::io::{self, IoSlice, IoSliceMut, Read};
 use crate::mem::size_of;
 use crate::net::{Ipv4Addr, Ipv6Addr, Shutdown, SocketAddr};
 use crate::sys::net::netc::*;
+use crate::sys::os::errno;
 use crate::sys::unsupported;
 use crate::sys_common::net::sockaddr_to_addr;
 use crate::time::Duration;
@@ -511,8 +512,11 @@ pub mod netc {
         optval: *const c_void,
         optlen: socklen_t,
     ) -> c_int {
-        todo!("missing netc::setsockopt implementation");
-        0
+        let retval = unsafe { lwip_setsockopt(sock.socket_handle, level, optname, optval, optlen) };
+        match retval {
+            0 => 0,
+            _ => -1,
+        }
     }
 
     pub fn getsockopt(
@@ -522,8 +526,11 @@ pub mod netc {
         optval: *mut c_void,
         optlen: *mut socklen_t,
     ) -> c_int {
-        todo!("missing netc::getsockopt implementation");
-        0
+        let retval = unsafe { lwip_getsockopt(sock.socket_handle, level, optname, optval, optlen) };
+        match retval {
+            0 => 0,
+            _ => -1,
+        }
     }
 
     pub fn bind(sock: RawSocket, name: *const sockaddr, namelen: socklen_t) -> c_int {
@@ -545,13 +552,18 @@ pub mod netc {
     }
 
     pub fn listen(sock: RawSocket, backlog: c_int) -> c_int {
-        todo!("missing netc::listen implementation");
-        0
+        let retval = unsafe { lwip_listen(sock.socket_handle, backlog) };
+        match retval {
+            0 => 0,
+            _ => -1,
+        }
     }
 
     pub fn getsockname(sock: RawSocket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
-        todo!("missing netc::getsockname implementation");
-        0
+        unsafe {
+            let retval = lwip_getsockname(sock.socket_handle, name, namelen);
+            retval
+        }
     }
 
     pub fn send(sock: RawSocket, mem: *const c_void, len: i32, flags: c_int) -> i32 {
@@ -632,8 +644,10 @@ pub mod netc {
     }
 
     pub fn getpeername(sock: RawSocket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
-        todo!("missing netc::getpeername implementation");
-        0
+        unsafe {
+            let retval = lwip_getpeername(sock.socket_handle, name, namelen);
+            retval
+        }
     }
 
     pub fn getaddrinfo(
@@ -661,9 +675,28 @@ pub fn init() {
 
 pub type wrlen_t = i32;
 
-pub fn cvt<T>(t: T) -> io::Result<T> {
-    Ok(t)
-    //###TODO:Check the last error!
+#[doc(hidden)]
+pub trait IsMinusOne {
+    fn is_minus_one(&self) -> bool;
+}
+
+macro_rules! impl_is_minus_one {
+    ($($t:ident)*) => ($(impl IsMinusOne for $t {
+        fn is_minus_one(&self) -> bool {
+            *self == -1
+        }
+    })*)
+}
+
+impl_is_minus_one! { i8 i16 i32 i64 isize }
+
+pub fn cvt<T: IsMinusOne>(t: T) -> io::Result<T> {
+    if t.is_minus_one() {
+        let err = io::Error::from_raw_os_error(errno());
+        Err(err)
+    } else {
+        Ok(t)
+    }
 }
 
 /// A variant of `cvt` for `getaddrinfo` which return 0 for a success.
@@ -679,7 +712,7 @@ pub fn cvt_gai(err: c_int) -> io::Result<()> {
 /// Just to provide the same interface as sys/unix/net.rs
 pub fn cvt_r<T, F>(mut f: F) -> io::Result<T>
 where
-    //T: IsMinusOne,
+    T: IsMinusOne,
     F: FnMut() -> T,
 {
     cvt(f())
@@ -722,8 +755,16 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn accept(&self, storage: *mut SocketAddr, len: *mut c_uint) -> io::Result<Socket> {
-        todo!("missing Socket::accept implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        let socket_handle =
+            unsafe { lwip_accept(self.socket_handle, storage as *mut netc::sockaddr, len) };
+
+        match socket_handle {
+            -1 => Err(io::const_io_error!(io::ErrorKind::Other, "accept failed")),
+            _ => {
+                let socket = Socket { socket_handle: socket_handle, socket_type: self.socket_type };
+                Ok(socket)
+            }
+        }
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
