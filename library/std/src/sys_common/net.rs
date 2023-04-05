@@ -398,7 +398,9 @@ impl TcpListener {
         // On Windows, this allows rebinding sockets which are actively in use,
         // which allows “socket hijacking”, so we explicitly don't set it here.
         // https://docs.microsoft.com/en-us/windows/win32/winsock/using-so-reuseaddr-and-so-exclusiveaddruse
-        #[cfg(not(windows))]
+        //
+        // On FreeRTOS + LwIP, SO_REUSEADDR is not supported with the standard configuration (so don't do it!)
+        #[cfg(not(any(windows, target_os = "freertos")))]
         setsockopt(&sock, c::SOL_SOCKET, c::SO_REUSEADDR, 1 as c_int)?;
 
         // Bind our new socket
