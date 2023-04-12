@@ -490,14 +490,14 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn set_linger(&self, linger: Option<Duration>) -> io::Result<()> {
-        todo!("missing Socket::set_linger implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        // Not supported by LwIP unless LWIP_SO_LINGER option is enabled.
+        Err(io::const_io_error!(io::ErrorKind::Unsupported, "SO_LINGER not supported"))
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn linger(&self) -> io::Result<Option<Duration>> {
-        todo!("missing Socket::linger implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        // Not supported by LwIP unless LWIP_SO_LINGER option is enabled.
+        Err(io::const_io_error!(io::ErrorKind::Unsupported, "SO_LINGER not supported"))
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
