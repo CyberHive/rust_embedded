@@ -316,6 +316,7 @@ where
 
 // Socket implementation
 #[stable(feature = "lwip_network", since = "1.64.0")]
+#[derive(Clone)]
 pub struct Socket {
     socket_handle: c_int,
     socket_type: c_int,
@@ -371,8 +372,7 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn duplicate(&self) -> io::Result<Socket> {
-        //Ok(Socket { socket_handle: self.socket_handle, socket_type: self.socket_type })
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        Ok(self.clone())
     }
 
     fn recv_with_flags(&self, buf: &mut [u8], flags: c_int) -> io::Result<usize> {
