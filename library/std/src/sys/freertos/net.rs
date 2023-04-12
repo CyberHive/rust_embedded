@@ -321,6 +321,13 @@ pub struct Socket {
     socket_type: c_int,
 }
 
+// This must match the timeval C definition
+#[repr(C)]
+struct Timeval {
+    tv_sec: c_longlong,
+    tv_usec: c_long,
+}
+
 impl Socket {
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn new(addr: &SocketAddr, socket_type: c_int) -> io::Result<Socket> {
@@ -455,14 +462,62 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn set_timeout(&self, dur: Option<Duration>, kind: c_int) -> io::Result<()> {
-        todo!("missing Socket::set_timeout implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        // kind is SO_RCVTIMEO or SO_SNDTIMEO
+        // We must convert the Duration to a Timeval structure (seconds and microseconds)
+        let dur_sec = match dur {
+            Some(dur) => dur.as_secs() as c_longlong,
+            None => 0,
+        };
+        let dur_usec = match dur {
+            Some(dur) => dur.subsec_micros() as c_int,
+            None => 0,
+        };
+        if (dur_sec == 0) && (dur_usec == 0) {
+            return Err(io::const_io_error!(
+                io::ErrorKind::InvalidInput,
+                "cannot set a 0 duration timeout",
+            ));
+        }
+        let mut option = Timeval { tv_sec: dur_sec, tv_usec: dur_usec };
+
+        let mut option_len = size_of::<Timeval>() as socklen_t;
+        let retval = netc::setsockopt(
+            self.as_raw(),
+            netc::SOL_SOCKET as i32,
+            kind,
+            &mut option as *mut _ as *mut c_void,
+            option_len,
+        );
+        match retval {
+            0 => Ok(()),
+            _ => Err(io::const_io_error!(io::ErrorKind::Other, "set_timeout failed")),
+        }
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn timeout(&self, kind: c_int) -> io::Result<Option<Duration>> {
-        todo!("missing Socket::timeout implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        // kind is SO_RCVTIMEO or SO_SNDTIMEO
+        let mut option = Timeval { tv_sec: 0, tv_usec: 0 };
+        let mut option_len = size_of::<Timeval>() as socklen_t;
+
+        let retval = netc::getsockopt(
+            self.as_raw(),
+            netc::SOL_SOCKET as i32,
+            kind,
+            &mut option as *mut _ as *mut c_void,
+            &mut option_len,
+        );
+        match retval {
+            0 => {
+                // Make a Duration struct, converting the usec fractional part to nsec.
+                let timeout = Duration::new(option.tv_sec as u64, (option.tv_usec * 1000) as u32);
+                if timeout.is_zero() {
+                    return Ok(None);
+                }
+                Ok(Some(timeout))
+            }
+            _ => Err(io::const_io_error!(io::ErrorKind::Other, "timeout failed")),
+        }
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
