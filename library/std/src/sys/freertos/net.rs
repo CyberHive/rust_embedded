@@ -28,16 +28,17 @@ pub mod netc {
     use crate::ptr;
     use crate::sys::net::RawSocket;
     use core::ffi::{c_char, c_int, c_long, c_uint, c_void};
-    // TODO: These constants borrowed from Windows implementation. They need to correlate to equivalents in LwIP - definitely need changes
-    // TODO: Caller in sys_common explicitly uses constants in netc scope. Check for duplicates which are also
-    // defined in lwip Rust bindings.
-    pub const AF_INET6: i32 = 10;
+
+    // These constants need to be consistent with the definitions in LwIP's sockets.h
+    // which unfortunately do not appear in the Rust bindings.
+    // They have all been checked against these.
+    pub const AF_INET6: i32 = 10; // Not supported in LwIP
     pub const AF_INET: i32 = 2;
-    pub const IPPROTO_IPV6: i32 = 41; //Not supported in LwIP
-    pub const IPV6_ADD_MEMBERSHIP: i32 = 12;
-    pub const IPV6_DROP_MEMBERSHIP: i32 = 13;
-    pub const IPV6_MULTICAST_LOOP: i32 = 19;
-    pub const IPV6_V6ONLY: i32 = 27;
+    pub const IPPROTO_IPV6: i32 = 41; // Not supported in LwIP
+    pub const IPV6_ADD_MEMBERSHIP: i32 = 12; // Not supported in LwIP
+    pub const IPV6_DROP_MEMBERSHIP: i32 = 13; // Not supported in LwIP
+    pub const IPV6_MULTICAST_LOOP: i32 = 19; // Not supported in LwIP
+    pub const IPV6_V6ONLY: i32 = 27; // Not supported in LwIP
     pub const IP_TTL: i32 = 2;
     pub const IP_MULTICAST_TTL: i32 = 5;
     pub const IP_MULTICAST_LOOP: i32 = 7;
@@ -48,21 +49,16 @@ pub mod netc {
     pub const SHUT_WR: i32 = 1;
     pub const SOCK_DGRAM: i32 = 2;
     pub const SOCK_STREAM: i32 = 1;
-    pub const SOL_SOCKET: i32 = 4095;
+    pub const SOL_SOCKET: i32 = 0xfff;
     pub const SO_BROADCAST: i32 = 32;
-    pub const SO_ERROR: i32 = 4103;
-    pub const SO_RCVTIMEO: i32 = 4102;
+    pub const SO_ERROR: i32 = 0x1007;
+    pub const SO_RCVTIMEO: i32 = 0x1006;
     pub const SO_REUSEADDR: i32 = 4;
-    pub const SO_SNDTIMEO: i32 = 4101;
-    pub const SO_LINGER: i32 = 128;
+    pub const SO_SNDTIMEO: i32 = 0x1005;
+    pub const SO_LINGER: i32 = 0x80;
     pub const TCP_NODELAY: i32 = 1;
     pub const MSG_PEEK: c_int = 1;
-    pub const FIONBIO: c_long = 0x8008667eu32 as c_long;
-    pub const EAI_NONAME: i32 = -2200;
-    pub const EAI_SERVICE: i32 = -2201;
-    pub const EAI_FAIL: i32 = -2202;
-    pub const EAI_MEMORY: i32 = -2203;
-    pub const EAI_FAMILY: i32 = -2204;
+    pub const FIONBIO: c_long = 0x8004667eu32 as c_long; // corrected: differs from Windows implementation
 
     // These were in 'unsupported'
     #[derive(Copy, Clone)]
@@ -368,7 +364,7 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn duplicate(&self) -> io::Result<Socket> {
-        //Ok(Self(self.0.try_clone()?))
+        //Ok(Socket { socket_handle: self.socket_handle, socket_type: self.socket_type })
         Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
     }
 
@@ -477,8 +473,19 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn set_nonblocking(&self, nonblocking: bool) -> io::Result<()> {
-        todo!("missing Socket::set_nonblocking implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        // Generic lwip_ioctl function takes a mutable argument pointer.  In this case (FIONBIO), the argument is not written.
+        // To keep Rust happy, we need to make a mutable copy to pass to the function
+        let mut nonblocking_mut = nonblocking;
+
+        let retval = unsafe {
+            lwip_ioctl(self.socket_handle, FIONBIO, &mut nonblocking_mut as *mut _ as *mut c_void)
+        };
+
+        // lwip_ioctl(FIONBIO) has no failure conditions, but catch potential errors anyway
+        match retval {
+            0 => Ok(()),
+            _ => Err(io::const_io_error!(io::ErrorKind::Other, "set_nonblocking failed")),
+        }
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
@@ -495,14 +502,39 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn set_nodelay(&self, nodelay: bool) -> io::Result<()> {
-        todo!("missing Socket::set_nodelay implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        //Careful: lwip_setsockopt(,,TCP_NODELAY) will be reading an integer
+        let mut option: c_int = nodelay as c_int;
+        let mut option_len = size_of::<c_int>() as socklen_t;
+        let retval = netc::setsockopt(
+            self.as_raw(),
+            netc::IPPROTO_TCP as i32,
+            netc::TCP_NODELAY,
+            &mut option as *mut _ as *mut c_void,
+            option_len,
+        );
+        match retval {
+            0 => Ok(()),
+            _ => Err(io::const_io_error!(io::ErrorKind::Other, "set_nodelay failed")),
+        }
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn nodelay(&self) -> io::Result<bool> {
-        todo!("missing Socket::nodelay implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        //Careful: lwip_getsockopt(,,TCP_NODELAY) will be writing an integer
+        let mut option: c_int = 0;
+        let mut option_len = size_of::<c_int>() as socklen_t;
+
+        let retval = netc::getsockopt(
+            self.as_raw(),
+            netc::IPPROTO_TCP as i32,
+            netc::TCP_NODELAY,
+            &mut option as *mut _ as *mut c_void,
+            &mut option_len,
+        );
+        match retval {
+            0 => Ok(option != 0),
+            _ => Err(io::const_io_error!(io::ErrorKind::Other, "nodelay failed")),
+        }
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
