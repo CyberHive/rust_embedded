@@ -522,8 +522,17 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn shutdown(&self, how: Shutdown) -> io::Result<()> {
-        todo!("missing Socket::shutdown implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        // Map Shutdown flavours to LWiP constants
+        let how = match how {
+            Shutdown::Write => netc::SHUT_WR,
+            Shutdown::Read => netc::SHUT_RD,
+            Shutdown::Both => netc::SHUT_RDWR,
+        };
+        let retval = unsafe { lwip_shutdown(self.socket_handle, how) };
+        match retval {
+            0 => Ok(()),
+            _ => Err(io::const_io_error!(io::ErrorKind::Other, "shutdown failed")),
+        }
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
