@@ -603,8 +603,20 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn take_error(&self) -> io::Result<Option<io::Error>> {
-        todo!("missing Socket::take_error implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        let mut option: c_int = 0;
+        let mut option_len = size_of::<c_int>() as socklen_t;
+        let retval: c_int = netc::getsockopt(
+            self.as_raw(),
+            netc::SOL_SOCKET,
+            netc::SO_ERROR,
+            &mut option as *mut _ as *mut c_void,
+            &mut option_len,
+        );
+        match retval {
+            0 => Ok(Some(io::Error::from_raw_os_error(option as i32))),
+            // LwIP's getsockopt doesn't return -1 for a SO_ERROR query, but catch that condition anyway
+            _ => Err(io::const_io_error!(io::ErrorKind::Other, "take_error failed")),
+        }
     }
 
     // This is used by sys_common code to abstract over Windows and Unix.
