@@ -24,6 +24,18 @@ pub mod netc {
     // Rust bindings for LwIP TCP/IP stack.
     include!("lwip-rs.rs");
 
+    extern "C" {
+        pub fn lwip_getaddrinfo(
+            nodename: *const core::ffi::c_char,
+            servname: *const core::ffi::c_char,
+            hints: *const addrinfo,
+            res: *mut *mut addrinfo,
+        ) -> core::ffi::c_int;
+    }
+    extern "C" {
+        pub fn lwip_freeaddrinfo(ai: *mut addrinfo);
+    }
+
     use crate::mem::size_of;
     use crate::ptr;
     use crate::sys::net::RawSocket;
@@ -252,12 +264,12 @@ pub mod netc {
         hints: *const addrinfo,
         res: *mut *mut addrinfo,
     ) -> c_int {
-        todo!("missing netc::getaddrinfo implementation");
-        0
+        let retval = unsafe { lwip_getaddrinfo(nodename, servname, hints, res) };
+        retval
     }
 
     pub fn freeaddrinfo(ai: *mut addrinfo) {
-        todo!("missing netc::freeaddrinfo implementation");
+        unsafe { lwip_freeaddrinfo(ai) };
     }
 }
 //###########################################################################################################################
