@@ -528,8 +528,11 @@ impl Socket {
             Shutdown::Read => netc::SHUT_RD,
             Shutdown::Both => netc::SHUT_RDWR,
         };
-        let result = unsafe { lwip_shutdown(self.socket_handle, how) };
-        cvt(result).map(drop)
+        let retval = unsafe { lwip_shutdown(self.socket_handle, how) };
+        match retval {
+            0 => Ok(()),
+            _ => Err(io::const_io_error!(io::ErrorKind::Other, "shutdown failed")),
+        }
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
