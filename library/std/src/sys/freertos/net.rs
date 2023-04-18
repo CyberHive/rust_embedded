@@ -406,8 +406,14 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn read_vectored(&self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
-        todo!("missing Socket::read_vectored implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        let retval = unsafe {
+            lwip_readv(self.socket_handle, bufs.as_ptr() as *mut [u8; 0usize], bufs.len() as i32)
+        };
+
+        match retval {
+            _ => Ok(retval as usize),
+            -1 => Err(io::const_io_error!(io::ErrorKind::Other, "read_vectored failed")),
+        }
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
@@ -463,8 +469,14 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn write_vectored(&self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
-        todo!("missing Socket::write_vectored implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        let retval = unsafe {
+            lwip_writev(self.socket_handle, bufs.as_ptr() as *const [u8; 0usize], bufs.len() as i32)
+        };
+
+        match retval {
+            _ => Ok(retval as usize),
+            -1 => Err(io::const_io_error!(io::ErrorKind::Other, "write_vectored failed")),
+        }
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
