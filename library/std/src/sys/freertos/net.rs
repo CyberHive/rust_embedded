@@ -5,6 +5,7 @@ use crate::io::ErrorKind::*;
 use crate::io::{self, IoSlice, IoSliceMut, Read};
 use crate::mem::size_of;
 use crate::net::{Ipv4Addr, Ipv6Addr, Shutdown, SocketAddr};
+use crate::ptr;
 use crate::sys::net::netc::*;
 use crate::sys::os::errno;
 use crate::sys::unsupported;
@@ -15,15 +16,24 @@ use core::ffi::{
     c_void,
 };
 
+use crate::sys::os::LwIP_ERRNO_EINPROGRESS;
+
 // netc module interfaces to LwIP socket calls.
 // This module is used by:
 // - UdpSocket, TcpListener and TcpStream (in sys_common/net.rs)
 // - Socket (below)
 #[allow(nonstandard_style)]
 pub mod netc {
+
+    use crate::mem::size_of;
+    use crate::sys::net::RawSocket;
+    use core::ffi::{c_char, c_int, c_long, c_uint, c_ushort, c_void};
+
     // Rust bindings for LwIP TCP/IP stack.
     include!("lwip-rs.rs");
 
+    // ###################################################################################################
+    // Also Rust bindings for LwIP TCP/IP stack - must integrate these into the above and remove from here
     extern "C" {
         pub fn lwip_getaddrinfo(
             nodename: *const core::ffi::c_char,
@@ -36,10 +46,22 @@ pub mod netc {
         pub fn lwip_freeaddrinfo(ai: *mut addrinfo);
     }
 
-    use crate::mem::size_of;
-    use crate::ptr;
-    use crate::sys::net::RawSocket;
-    use core::ffi::{c_char, c_int, c_long, c_uint, c_void};
+    pub const POLLIN: c_ushort = 0x1;
+    pub const POLLOUT: c_ushort = 0x2;
+
+    #[repr(C)]
+    #[derive(Debug, Copy, Clone)]
+    pub struct pollfd {
+        pub fd: c_int,
+        pub events: c_ushort,
+        pub revents: c_ushort,
+    }
+
+    extern "C" {
+        pub fn lwip_poll(fds: *const pollfd, nfds: c_uint, timeout: c_int) -> c_int;
+    }
+
+    // ###################################################################################################
 
     // These constants need to be consistent with the definitions in LwIP's sockets.h
     // which unfortunately do not appear in the Rust bindings.
@@ -274,7 +296,6 @@ pub mod netc {
 }
 //###########################################################################################################################
 
-//TODO: fill in the correct implementations
 pub fn init() {
     println!("FreeRTOS net init");
     // Network init currently called by test harness. For now, can get away without putting it here.
@@ -364,8 +385,102 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn connect_timeout(&self, addr: &SocketAddr, timeout: Duration) -> io::Result<()> {
-        todo!("missing Socket::connect_timeout implementation");
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet"))
+        // Does not correspond to a single OS call.
+        // We put the socket in nonblocking mode and call connect(). Then we poll it during the timeout period.
+        // It will either succeed to connect, or time out.
+        // At any point, an error other then in progress/would block aborts the process.
+
+        // Given a SocketAddr, we must make a netc::sockaddr to give to LwIP. The structs are not the same!
+        let mut sin_family: u8;
+        let mut sin_port: in_port_t;
+        let mut sin_addr: in_addr;
+        match *addr {
+            SocketAddr::V4(v4add) => {
+                sin_family = netc::AF_INET as u8;
+                sin_port = unsafe { lwip_htons(v4add.port()) };
+                let ipaddr = v4add.ip().octets();
+                sin_addr = netc::in_addr {
+                    s_addr: ((ipaddr[3] as u32) << 24)
+                        + ((ipaddr[2] as u32) << 16)
+                        + ((ipaddr[1] as u32) << 8)
+                        + ((ipaddr[0] as u32) << 0),
+                };
+            }
+
+            SocketAddr::V6(..) => {
+                return Err(io::const_io_error!(io::ErrorKind::Unsupported, "IPV6 not supported"));
+            }
+        };
+
+        let addr2 = netc::sockaddr_in {
+            sin_len: size_of::<netc::sockaddr_in>() as u8,
+            sin_family: sin_family,
+            sin_port: sin_port,
+            sin_addr: sin_addr,
+            sin_zero: [0; 8usize],
+        };
+
+        self.set_nonblocking(true)?;
+        let retval = unsafe {
+            netc::connect(
+                self.as_raw(),
+                &addr2 as *const _ as *const netc::sockaddr,
+                size_of::<netc::sockaddr_storage>() as socklen_t,
+            )
+        };
+        self.set_nonblocking(false)?;
+
+        match retval {
+            // If connect is in progress (as expected), we wait for the duration of the timeout and check progress.
+            -1 => {
+                if errno() == LwIP_ERRNO_EINPROGRESS {
+                    if timeout.as_secs() == 0 && timeout.subsec_nanos() == 0 {
+                        return Err(io::const_io_error!(
+                            io::ErrorKind::InvalidInput,
+                            "cannot set a 0 duration timeout",
+                        ));
+                    }
+
+                    let timeout_msec = timeout.as_millis();
+                    let mut fds = pollfd {
+                        fd: self.as_raw().socket_handle,
+                        events: POLLIN | POLLOUT,
+                        revents: 0,
+                    };
+
+                    // lwip_poll will return 1 on successful connection, or 0 if the timeout occurs before any response
+                    let retval: i32 = unsafe { lwip_poll(&fds, 1, timeout_msec as i32) }; //###need to deal with stupid timeouts > MAX_INT
+
+                    match retval {
+                        // Timeout
+                        0 => Err(io::const_io_error!(
+                            io::ErrorKind::TimedOut,
+                            "connect_timeout timed out"
+                        )),
+
+                        // Success
+                        1 => Ok(()),
+
+                        // Something weird and unexpected
+                        _ => Err(io::const_io_error!(
+                            io::ErrorKind::Other,
+                            "connect_timeout: unexpected response from lwip_poll"
+                        )),
+                    }
+                } else {
+                    // connect() returned an error other than LwIP_ERRNO_EINPROGRESS
+                    Err(io::const_io_error!(io::ErrorKind::Other, "connect_timeout failed"))
+                }
+            }
+            // Success case
+            0 => Ok(()), // Apparently, we connected successfully, straight away (should not really happen!)
+
+            // Return values other than 0 (success) or -1 (error) should not occur
+            _ => Err(io::const_io_error!(
+                io::ErrorKind::Other,
+                "Unexpected return value from connect()",
+            )),
+        }
     }
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
@@ -409,7 +524,6 @@ impl Socket {
         let retval = unsafe {
             lwip_readv(self.socket_handle, bufs.as_ptr() as *mut [u8; 0usize], bufs.len() as i32)
         };
-
         match retval {
             _ => Ok(retval as usize),
             -1 => Err(io::const_io_error!(io::ErrorKind::Other, "read_vectored failed")),
@@ -563,7 +677,9 @@ impl Socket {
     pub fn set_nonblocking(&self, nonblocking: bool) -> io::Result<()> {
         // Generic lwip_ioctl function takes a mutable argument pointer.  In this case (FIONBIO), the argument is not written.
         // To keep Rust happy, we need to make a mutable copy to pass to the function
-        let mut nonblocking_mut = nonblocking;
+        // Furthermore, we need to pass lwip_ioctl a pointer to int - lwip_ioctl evaluates 4 bytes (nonzero = false).
+        // So, an 8-bit false bool alongside nonzero bytes will be evaluated as true!
+        let mut nonblocking_mut = nonblocking as c_int;
 
         let retval = unsafe {
             lwip_ioctl(self.socket_handle, FIONBIO, &mut nonblocking_mut as *mut _ as *mut c_void)
