@@ -5,13 +5,23 @@ use crate::fmt;
 use crate::io;
 use crate::marker::PhantomData;
 use crate::path::{self, PathBuf};
+use core::ffi::c_int;
 
 // FreeRTOS does not have a filesystem unless FreeRTOS-plus-FAT is used.
 // For compatibility with 'vanilla' FreeRTOS, and since we don't rely on a filesystem, these functions are stubbed and raise
 // errors.
 
+pub const pdFREERTOS_ERRNO_EWOULDBLOCK: i32 = 11;
+pub const LwIP_ERRNO_EINPROGRESS: i32 = 115;
+pub const pdFREERTOS_ERRNO_ETIMEDOUT: i32 = 116;
+
 pub fn errno() -> i32 {
-    0
+    // Link with FreeRTOS' global errno (we don't need to expose this at the top level)
+    extern "C" {
+        #[no_mangle]
+        static errno: c_int;
+    }
+    unsafe { errno }
 }
 
 pub fn error_string(_errno: i32) -> String {
