@@ -274,7 +274,7 @@ pub fn errno() -> i32 {
 }
 
 pub fn error_string(errno: i32) -> String {
-    if (errno < 0) || (errno >= errno_text.len()) {
+    if (errno < 0) || (errno as usize >= errno_text.len()) {
         "Unknown error".to_string()
     } else {
         errno_text[errno as usize].to_string()
