@@ -388,7 +388,7 @@ impl Socket {
         // Does not correspond to a single OS call.
         // We put the socket in nonblocking mode and call connect(). Then we poll it during the timeout period.
         // It will either succeed to connect, or time out.
-        // At any point, an error other then in progress/would block aborts the process.
+        // At any point, an error other than in progress/would block aborts the process.
 
         // Given a SocketAddr, we must make a netc::sockaddr to give to LwIP. The structs are not the same!
         let mut sin_family: u8;
