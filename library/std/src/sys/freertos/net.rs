@@ -26,7 +26,7 @@ use crate::sys::os::EINPROGRESS;
 pub mod netc {
 
     use crate::mem::size_of;
-    use crate::sys::net::RawSocket;
+    use crate::sys::net::Socket;
     use core::ffi::{c_char, c_int, c_long, c_uint, c_ushort, c_void};
 
     // Rust bindings for LwIP TCP/IP stack.
@@ -136,7 +136,7 @@ pub mod netc {
     }
 
     pub fn setsockopt(
-        sock: RawSocket,
+        sock: Socket,
         level: c_int,
         optname: c_int,
         optval: *const c_void,
@@ -150,7 +150,7 @@ pub mod netc {
     }
 
     pub fn getsockopt(
-        sock: RawSocket,
+        sock: Socket,
         level: c_int,
         optname: c_int,
         optval: *mut c_void,
@@ -163,7 +163,7 @@ pub mod netc {
         }
     }
 
-    pub fn bind(sock: RawSocket, name: *const sockaddr, namelen: socklen_t) -> c_int {
+    pub fn bind(sock: Socket, name: *const sockaddr, namelen: socklen_t) -> c_int {
         let retval =
             unsafe { lwip_bind(sock.socket_handle, name as *const super::sockaddr, namelen) };
         match retval {
@@ -172,7 +172,7 @@ pub mod netc {
         }
     }
 
-    pub fn connect(sock: RawSocket, name: *const sockaddr, namelen: socklen_t) -> c_int {
+    pub fn connect(sock: Socket, name: *const sockaddr, namelen: socklen_t) -> c_int {
         let retval =
             unsafe { lwip_connect(sock.socket_handle, name as *const super::sockaddr, namelen) };
         match retval {
@@ -181,7 +181,7 @@ pub mod netc {
         }
     }
 
-    pub fn listen(sock: RawSocket, backlog: c_int) -> c_int {
+    pub fn listen(sock: Socket, backlog: c_int) -> c_int {
         let retval = unsafe { lwip_listen(sock.socket_handle, backlog) };
         match retval {
             0 => 0,
@@ -189,14 +189,14 @@ pub mod netc {
         }
     }
 
-    pub fn getsockname(sock: RawSocket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
+    pub fn getsockname(sock: Socket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
         unsafe {
             let retval = lwip_getsockname(sock.socket_handle, name, namelen);
             retval
         }
     }
 
-    pub fn send(sock: RawSocket, mem: *const c_void, len: i32, flags: c_int) -> i32 {
+    pub fn send(sock: Socket, mem: *const c_void, len: i32, flags: c_int) -> i32 {
         unsafe {
             let retval = lwip_send(
                 sock.socket_handle,
@@ -210,7 +210,7 @@ pub mod netc {
     }
 
     pub fn sendto(
-        sock: RawSocket,
+        sock: Socket,
         mem: *const c_void,
         len: i32,
         flags: c_int,
@@ -237,14 +237,14 @@ pub mod netc {
         }
     }
 
-    pub fn recv(sock: RawSocket, mem: *mut c_void, len: i32, flags: c_int) -> i32 {
+    pub fn recv(sock: Socket, mem: *mut c_void, len: i32, flags: c_int) -> i32 {
         let retval = unsafe { lwip_recv(sock.socket_handle, mem, len as size_t, flags) };
 
         retval
     }
 
     pub fn recvfrom(
-        sock: RawSocket,
+        sock: Socket,
         mem: *mut c_void,
         len: i32,
         flags: c_int,
@@ -273,7 +273,7 @@ pub mod netc {
         }
     }
 
-    pub fn getpeername(sock: RawSocket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
+    pub fn getpeername(sock: Socket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
         unsafe {
             let retval = lwip_getpeername(sock.socket_handle, name, namelen);
             retval
@@ -349,7 +349,7 @@ where
 
 // Socket implementation
 #[stable(feature = "lwip_network", since = "1.64.0")]
-#[derive(Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Socket {
     socket_handle: c_int,
     socket_type: c_int,
@@ -706,7 +706,7 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn set_nodelay(&self, nodelay: bool) -> io::Result<()> {
-        //Careful: lwip_setsockopt(,,TCP_NODELAY) will be reading an integer
+        // Careful: lwip_setsockopt(,,TCP_NODELAY) will be reading an integer
         let mut option: c_int = nodelay as c_int;
         let mut option_len = size_of::<c_int>() as socklen_t;
         let retval = netc::setsockopt(
@@ -724,7 +724,7 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn nodelay(&self) -> io::Result<bool> {
-        //Careful: lwip_getsockopt(,,TCP_NODELAY) will be writing an integer
+        // Careful: lwip_getsockopt(,,TCP_NODELAY) will be writing an integer
         let mut option: c_int = 0;
         let mut option_len = size_of::<c_int>() as socklen_t;
 
@@ -760,12 +760,11 @@ impl Socket {
     }
 
     // This is used by sys_common code to abstract over Windows and Unix.
-    // Probably means not needed here.
+    // We do not have a distinct raw socket type, but need to provide an as_raw() implementation for compatibility with the
+    // shared code
     #[stable(feature = "lwip_network", since = "1.64.0")]
-    pub fn as_raw(&self) -> RawSocket {
-        let mut raw_socket =
-            RawSocket { socket_handle: self.socket_handle, socket_type: self.socket_type }; //TODO: get rid of RawSocket completely
-        raw_socket
+    pub fn as_raw(&self) -> Socket {
+        *self
     }
 }
 
@@ -774,12 +773,4 @@ impl<'a> Read for &'a Socket {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         (**self).read(buf)
     }
-}
-
-//TODO:RawSocket is a Windows-ism that needs to be eliminated. We just have sockets.
-#[stable(feature = "lwip_network", since = "1.64.0")]
-#[derive(Debug, Copy, Clone)]
-pub struct RawSocket {
-    socket_handle: c_int,
-    socket_type: c_int,
 }
