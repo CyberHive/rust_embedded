@@ -16,7 +16,7 @@ use core::ffi::{
     c_void,
 };
 
-use crate::sys::os::LwIP_ERRNO_EINPROGRESS;
+use crate::sys::os::EINPROGRESS;
 
 // netc module interfaces to LwIP socket calls.
 // This module is used by:
@@ -433,7 +433,7 @@ impl Socket {
         match retval {
             // If connect is in progress (as expected), we wait for the duration of the timeout and check progress.
             -1 => {
-                if errno() == LwIP_ERRNO_EINPROGRESS {
+                if errno() == EINPROGRESS {
                     if timeout.as_secs() == 0 && timeout.subsec_nanos() == 0 {
                         return Err(io::const_io_error!(
                             io::ErrorKind::InvalidInput,
