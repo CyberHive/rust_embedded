@@ -10,7 +10,7 @@ use crate::sys::net::netc::*;
 use crate::sys::os::errno;
 use crate::sys::unsupported;
 use crate::sys_common::net::sockaddr_to_addr;
-use crate::time::Duration;
+use crate::time::{Duration, Instant};
 use core::ffi::{
     c_char, c_int, c_long, c_longlong, c_schar, c_short, c_uchar, c_uint, c_ulonglong, c_ushort,
     c_void,
@@ -48,6 +48,7 @@ pub mod netc {
 
     pub const POLLIN: c_ushort = 0x1;
     pub const POLLOUT: c_ushort = 0x2;
+    pub const POLLERR: c_ushort = 0x4;
 
     #[repr(C)]
     #[derive(Debug, Copy, Clone)]
@@ -420,66 +421,132 @@ impl Socket {
             sin_zero: [0; 8usize],
         };
 
-        self.set_nonblocking(true)?;
-        let retval = unsafe {
-            netc::connect(
-                self.as_raw(),
-                &addr2 as *const _ as *const netc::sockaddr,
-                size_of::<netc::sockaddr_storage>() as socklen_t,
-            )
-        };
-        self.set_nonblocking(false)?;
+        if timeout.as_secs() == 0 && timeout.subsec_nanos() == 0 {
+            return Err(io::const_io_error!(
+                io::ErrorKind::InvalidInput,
+                "cannot set a 0 duration timeout",
+            ));
+        }
 
-        match retval {
-            // If connect is in progress (as expected), we wait for the duration of the timeout and check progress.
-            -1 => {
-                if errno() == EINPROGRESS {
-                    if timeout.as_secs() == 0 && timeout.subsec_nanos() == 0 {
+        let start = Instant::now();
+
+        loop {
+            let elapsed = start.elapsed();
+
+            let timeout = timeout - elapsed;
+
+            let timeout_msec = timeout.as_millis();
+            // lwip_poll wants timeout as an i32. Convert to that, saturating values greater than i32::MAX
+            let timeout_msec =
+                if timeout_msec > i32::MAX as u128 { i32::MAX } else { timeout_msec as i32 };
+
+            // Non-blocking connect call will return imediately
+            // The connection attempt continues in the background, and we can monitor it with lwip_poll
+            // LwIP's connect gives up after a certain number of SYN retries, at which point lwip_poll will complete with POLLERR
+            // This 'give up' time might be less than our configured timeout - in which case we loop round and try again.
+            self.set_nonblocking(true)?;
+            let retval = unsafe {
+                netc::connect(
+                    self.as_raw(),
+                    &addr2 as *const _ as *const netc::sockaddr,
+                    size_of::<netc::sockaddr_storage>() as socklen_t,
+                )
+            };
+            self.set_nonblocking(false)?;
+
+            match retval {
+                // If connect is in progress (as expected), we wait for the duration of the timeout and check progress.
+                -1 => {
+                    if errno() == EINPROGRESS {
+                        let mut fds = pollfd {
+                            fd: self.as_raw().socket_handle,
+                            events: POLLIN | POLLOUT,
+                            revents: 0,
+                        };
+
+                        // lwip_poll will return 1 on successful connection, or 0 if the timeout occurs before any response
+
+                        let retval: i32 = unsafe { lwip_poll(&fds, 1, timeout_msec) };
+                        match retval {
+                            // Timeout from lwip_poll
+                            0 => {
+                                return Err(io::const_io_error!(
+                                    io::ErrorKind::TimedOut,
+                                    "connect_timeout timed out"
+                                ));
+                            }
+
+                            // Success, or timeout from lwip_connect
+                            1 => {
+                                if (fds.revents & POLLERR) != 0 {
+                                    // Timeout from lwip_connect
+                                    // We'll continue round the loop until our configured timeout (which might exceed TCP's)
+                                    // expires.
+                                    // Because the lwip_connect call failed, it will have deallocated the PCB (protocol control
+                                    // block) and invalidated the socket. So, we close the socket and make a new one, ready
+                                    // to call lwip_connect again
+                                    let retval = unsafe { lwip_close(self.socket_handle) };
+                                    let socket_handle = unsafe {
+                                        lwip_socket(netc::AF_INET, self.socket_type, IPPROTO_IP)
+                                    };
+                                    match socket_handle {
+                                        -1 => {
+                                            return Err(io::const_io_error!(
+                                                io::ErrorKind::Other,
+                                                "Socket re-creation during connect_timeout failed"
+                                            ));
+                                        }
+                                        _ => {
+                                            // Unfortunately our Socket (and our caller's Socket) is not mutable.
+                                            // This means we cannot set the underlying socket handle to a different one.
+                                            // Luckily, LwIP recycles socket handles, so the newly created socket is almost
+                                            // guaranteed to be the same as the one we just closed. Check this and return an
+                                            // error if the handles differ
+                                            if self.socket_handle != socket_handle {
+                                                return Err(io::const_io_error!(
+                                                    io::ErrorKind::Other,
+                                                    "Socket re-creation during connect_timeout failed"
+                                                ));
+                                            }
+                                            // We opened a new LwIP socket, and can continue round the loop trying to connect
+                                        }
+                                    }
+                                } else {
+                                    // Successfully connected!
+                                    return Ok(());
+                                }
+                            }
+
+                            // Something weird and unexpected
+                            _ => {
+                                return Err(io::const_io_error!(
+                                    io::ErrorKind::Other,
+                                    "connect_timeout: unexpected response from lwip_poll"
+                                ));
+                            }
+                        }
+                    } else {
+                        // connect() returned an error other than LwIP_ERRNO_EINPROGRESS
                         return Err(io::const_io_error!(
-                            io::ErrorKind::InvalidInput,
-                            "cannot set a 0 duration timeout",
+                            io::ErrorKind::Other,
+                            "connect_timeout failed"
                         ));
                     }
+                }
+                // Success case
+                0 => {
+                    // Apparently, we connected successfully, straight away (should not really happen, it takes finite time!)
+                    return Ok(());
+                }
 
-                    let timeout_msec = timeout.as_millis();
-                    let mut fds = pollfd {
-                        fd: self.as_raw().socket_handle,
-                        events: POLLIN | POLLOUT,
-                        revents: 0,
-                    };
-
-                    // lwip_poll will return 1 on successful connection, or 0 if the timeout occurs before any response
-                    let retval: i32 = unsafe { lwip_poll(&fds, 1, timeout_msec as i32) }; //###need to deal with stupid timeouts > MAX_INT
-
-                    match retval {
-                        // Timeout
-                        0 => Err(io::const_io_error!(
-                            io::ErrorKind::TimedOut,
-                            "connect_timeout timed out"
-                        )),
-
-                        // Success
-                        1 => Ok(()),
-
-                        // Something weird and unexpected
-                        _ => Err(io::const_io_error!(
-                            io::ErrorKind::Other,
-                            "connect_timeout: unexpected response from lwip_poll"
-                        )),
-                    }
-                } else {
-                    // connect() returned an error other than LwIP_ERRNO_EINPROGRESS
-                    Err(io::const_io_error!(io::ErrorKind::Other, "connect_timeout failed"))
+                // Return values other than 0 (success) or -1 (error) should not occur
+                _ => {
+                    return Err(io::const_io_error!(
+                        io::ErrorKind::Other,
+                        "Unexpected return value from connect()"
+                    ));
                 }
             }
-            // Success case
-            0 => Ok(()), // Apparently, we connected successfully, straight away (should not really happen!)
-
-            // Return values other than 0 (success) or -1 (error) should not occur
-            _ => Err(io::const_io_error!(
-                io::ErrorKind::Other,
-                "Unexpected return value from connect()",
-            )),
         }
     }
 
