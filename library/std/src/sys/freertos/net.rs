@@ -27,6 +27,7 @@ pub mod netc {
 
     use crate::mem::size_of;
     use crate::sys::net::RawSocket;
+    use crate::time::Duration;
     use core::ffi::{c_char, c_int, c_long, c_uint, c_ushort, c_void};
 
     // Rust bindings for LwIP TCP/IP stack.
@@ -60,6 +61,19 @@ pub mod netc {
 
     extern "C" {
         pub fn lwip_poll(fds: *const pollfd, nfds: c_uint, timeout: c_int) -> c_int;
+    }
+
+    // This definition is incomplete. The Rust code only needs to read the IP address to snoop on readiness for operation.
+    // So, we can omit the rest of the structure definition for this purpose (it is dependent on various C compile time
+    // configurations, so a pain to reproduce in Rust)
+    pub struct netif {
+        pub next: c_int,
+        pub ip_addr: in_addr_t,
+    }
+
+    // Descriptor for default network interface, which we snoop on to ascertain readiness for operation. Read-only from here.
+    extern "C" {
+        static gnetif: netif;
     }
 
     // ###################################################################################################
@@ -294,13 +308,31 @@ pub mod netc {
     pub fn freeaddrinfo(ai: *mut addrinfo) {
         unsafe { lwip_freeaddrinfo(ai) };
     }
+
+    pub fn is_netif_initialised() -> bool {
+        // Crude check that the interface is up by seeing if an IP address has been assigned.
+        // Unfortunately, LwIP does not provide a clean API function to do this.
+        unsafe { gnetif.ip_addr != 0 }
+    }
 }
 //###########################################################################################################################
 
 pub fn init() {
-    println!("FreeRTOS net init");
-    // Network init currently called by test harness. For now, can get away without putting it here.
-    //###TODO:Add LwIP network init here!
+    // The LwIP initialisation function can only be called once, and should be called at startup (as part of the OS
+    // initialisation). So, no need to call it here. Instead, we can check whether initialisation is complete, and wait for it.
+    // We wait a limited time so that network functions don't block indefinitely. If initialisation hasn't finished by then,
+    // the network function will fail with an error message.
+    let mut retry_count = 0;
+    loop {
+        if netc::is_netif_initialised() {
+            return;
+        }
+        if retry_count > 12 {
+            return;
+        }
+        crate::thread::sleep(Duration::from_millis(250));
+        retry_count = retry_count + 1;
+    }
 }
 
 pub type wrlen_t = i32;
@@ -331,12 +363,7 @@ pub fn cvt<T: IsMinusOne>(t: T) -> io::Result<T> {
 
 /// A variant of `cvt` for `getaddrinfo` which return 0 for a success.
 pub fn cvt_gai(err: c_int) -> io::Result<()> {
-    if err == 0 {
-        Ok(())
-    } else {
-        //###TODO:fill in the error case
-        Err(io::const_io_error!(io::ErrorKind::Unsupported, "Not implemented for FreeRTOS yet")) /* Should be Err(whatever last error was) */
-    }
+    if err == 0 { Ok(()) } else { Err(io::Error::from_raw_os_error(errno())) }
 }
 
 /// Just to provide the same interface as sys/unix/net.rs
