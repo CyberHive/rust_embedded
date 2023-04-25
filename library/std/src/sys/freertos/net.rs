@@ -26,7 +26,7 @@ use crate::sys::os::EINPROGRESS;
 pub mod netc {
 
     use crate::mem::size_of;
-    use crate::sys::net::Socket;
+    use crate::sys::net::RawSocket;
     use core::ffi::{c_char, c_int, c_long, c_uint, c_ushort, c_void};
 
     // Rust bindings for LwIP TCP/IP stack.
@@ -137,7 +137,7 @@ pub mod netc {
     }
 
     pub fn setsockopt(
-        sock: Socket,
+        sock: RawSocket,
         level: c_int,
         optname: c_int,
         optval: *const c_void,
@@ -151,7 +151,7 @@ pub mod netc {
     }
 
     pub fn getsockopt(
-        sock: Socket,
+        sock: RawSocket,
         level: c_int,
         optname: c_int,
         optval: *mut c_void,
@@ -164,7 +164,7 @@ pub mod netc {
         }
     }
 
-    pub fn bind(sock: Socket, name: *const sockaddr, namelen: socklen_t) -> c_int {
+    pub fn bind(sock: RawSocket, name: *const sockaddr, namelen: socklen_t) -> c_int {
         let retval =
             unsafe { lwip_bind(sock.socket_handle, name as *const super::sockaddr, namelen) };
         match retval {
@@ -173,7 +173,7 @@ pub mod netc {
         }
     }
 
-    pub fn connect(sock: Socket, name: *const sockaddr, namelen: socklen_t) -> c_int {
+    pub fn connect(sock: RawSocket, name: *const sockaddr, namelen: socklen_t) -> c_int {
         let retval =
             unsafe { lwip_connect(sock.socket_handle, name as *const super::sockaddr, namelen) };
         match retval {
@@ -182,7 +182,7 @@ pub mod netc {
         }
     }
 
-    pub fn listen(sock: Socket, backlog: c_int) -> c_int {
+    pub fn listen(sock: RawSocket, backlog: c_int) -> c_int {
         let retval = unsafe { lwip_listen(sock.socket_handle, backlog) };
         match retval {
             0 => 0,
@@ -190,14 +190,14 @@ pub mod netc {
         }
     }
 
-    pub fn getsockname(sock: Socket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
+    pub fn getsockname(sock: RawSocket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
         unsafe {
             let retval = lwip_getsockname(sock.socket_handle, name, namelen);
             retval
         }
     }
 
-    pub fn send(sock: Socket, mem: *const c_void, len: i32, flags: c_int) -> i32 {
+    pub fn send(sock: RawSocket, mem: *const c_void, len: i32, flags: c_int) -> i32 {
         unsafe {
             let retval = lwip_send(
                 sock.socket_handle,
@@ -211,7 +211,7 @@ pub mod netc {
     }
 
     pub fn sendto(
-        sock: Socket,
+        sock: RawSocket,
         mem: *const c_void,
         len: i32,
         flags: c_int,
@@ -238,14 +238,14 @@ pub mod netc {
         }
     }
 
-    pub fn recv(sock: Socket, mem: *mut c_void, len: i32, flags: c_int) -> i32 {
+    pub fn recv(sock: RawSocket, mem: *mut c_void, len: i32, flags: c_int) -> i32 {
         let retval = unsafe { lwip_recv(sock.socket_handle, mem, len as size_t, flags) };
 
         retval
     }
 
     pub fn recvfrom(
-        sock: Socket,
+        sock: RawSocket,
         mem: *mut c_void,
         len: i32,
         flags: c_int,
@@ -274,7 +274,7 @@ pub mod netc {
         }
     }
 
-    pub fn getpeername(sock: Socket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
+    pub fn getpeername(sock: RawSocket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
         unsafe {
             let retval = lwip_getpeername(sock.socket_handle, name, namelen);
             retval
@@ -350,7 +350,7 @@ where
 
 // Socket implementation
 #[stable(feature = "lwip_network", since = "1.64.0")]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Socket {
     socket_handle: c_int,
     socket_type: c_int,
@@ -827,11 +827,12 @@ impl Socket {
     }
 
     // This is used by sys_common code to abstract over Windows and Unix.
-    // We do not have a distinct raw socket type, but need to provide an as_raw() implementation for compatibility with the
-    // shared code
+    // Here, we provide a clone of the Socket struct, which does not call lwip_close when dropped.
     #[stable(feature = "lwip_network", since = "1.64.0")]
-    pub fn as_raw(&self) -> Socket {
-        *self
+    pub fn as_raw(&self) -> RawSocket {
+        let mut raw_socket =
+            RawSocket { socket_handle: self.socket_handle, socket_type: self.socket_type };
+        raw_socket
     }
 }
 
@@ -840,4 +841,25 @@ impl<'a> Read for &'a Socket {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         (**self).read(buf)
     }
+}
+
+// Because std::net does not provide an explicit socket close function, we must close sockets when Socket is dropped.
+// Socket functions use as_raw() to make references to the Socket. These use RawSocket which can be dropped safely without
+// closing the socket!
+#[stable(feature = "lwip_network", since = "1.64.0")]
+impl Drop for Socket {
+    fn drop(&mut self) {
+        unsafe {
+            let _ = lwip_close(self.socket_handle);
+        }
+    }
+}
+
+// RawSocket holds the same state variables as Socket. It is used as a clone of Socket, which does not call lwip_close
+// when dropped.
+#[stable(feature = "lwip_network", since = "1.64.0")]
+#[derive(Debug, Copy, Clone)]
+pub struct RawSocket {
+    socket_handle: c_int,
+    socket_type: c_int,
 }
