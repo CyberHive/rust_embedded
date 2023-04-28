@@ -6,24 +6,10 @@ pub const ETHARP_SUPPORT_STATIC_ENTRIES: u32 = 0;
 pub const PBUF_LINK_HLEN: u32 = 14;
 pub const PBUF_LINK_ENCAPSULATION_HLEN: u32 = 0;
 pub const SIN_ZERO_LEN: u32 = 8;
-pub const IPPROTO_IP: i32 = 0;
-pub const IPPROTO_ICMP: u32 = 1;
-pub const IPPROTO_TCP: u32 = 6;
-pub const IPPROTO_UDP: u32 = 17;
 pub const IPPROTO_UDPLITE: u32 = 136;
 pub const IPPROTO_RAW: u32 = 255;
-pub const PBUF_TYPE_FLAG_STRUCT_DATA_CONTIGUOUS: u32 = 128;
-pub const PBUF_TYPE_FLAG_DATA_VOLATILE: u32 = 64;
-pub const PBUF_TYPE_ALLOC_SRC_MASK: u32 = 15;
-pub const PBUF_ALLOC_FLAG_RX: u32 = 256;
-pub const PBUF_ALLOC_FLAG_DATA_CONTIGUOUS: u32 = 512;
-pub const PBUF_TYPE_ALLOC_SRC_MASK_STD_HEAP: u32 = 0;
-pub const PBUF_TYPE_ALLOC_SRC_MASK_STD_MEMP_PBUF: u32 = 1;
-pub const PBUF_TYPE_ALLOC_SRC_MASK_STD_MEMP_PBUF_POOL: u32 = 2;
-pub const PBUF_TYPE_ALLOC_SRC_MASK_APP_MIN: u32 = 3;
-pub const PBUF_TYPE_ALLOC_SRC_MASK_APP_MAX: u32 = 15;
-pub const PBUF_TRANSPORT_HLEN: u32 = 20;
-pub const PBUF_IP_HLEN: u32 = 20;
+pub const MEMP_NUM_NETCONN: u32 = 8;
+pub const FD_SETSIZE: u32 = 8;
 pub type int_least64_t = i64;
 pub type uint_least64_t = u64;
 pub type int_fast64_t = i64;
@@ -83,7 +69,12 @@ fn bindgen_test_layout_ip4_addr() {
                 ::core::ptr::addr_of!((*ptr).addr) as usize - ptr as usize
             },
             0usize,
-            concat!("Offset of field: ", stringify!(ip4_addr), "::", stringify!(addr))
+            concat!(
+                "Offset of field: ",
+                stringify!(ip4_addr),
+                "::",
+                stringify!(addr)
+            )
         );
     }
     test_field_addr();
@@ -133,10 +124,50 @@ fn bindgen_test_layout_in_addr() {
                 ::core::ptr::addr_of!((*ptr).s_addr) as usize - ptr as usize
             },
             0usize,
-            concat!("Offset of field: ", stringify!(in_addr), "::", stringify!(s_addr))
+            concat!(
+                "Offset of field: ",
+                stringify!(in_addr),
+                "::",
+                stringify!(s_addr)
+            )
         );
     }
     test_field_s_addr();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct in6_addr {
+    pub s6_addr: [u8_t; 16usize],
+}
+#[test]
+fn bindgen_test_layout_in6_addr() {
+    assert_eq!(
+        ::core::mem::size_of::<in6_addr>(),
+        16usize,
+        concat!("Size of: ", stringify!(in6_addr))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<in6_addr>(),
+        1usize,
+        concat!("Alignment of ", stringify!(in6_addr))
+    );
+    fn test_field_s6_addr() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<in6_addr>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).s6_addr) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(in6_addr),
+                "::",
+                stringify!(s6_addr)
+            )
+        );
+    }
+    test_field_s6_addr();
 }
 pub type sa_family_t = u8_t;
 pub type in_port_t = u16_t;
@@ -169,7 +200,12 @@ fn bindgen_test_layout_sockaddr_in() {
                 ::core::ptr::addr_of!((*ptr).sin_len) as usize - ptr as usize
             },
             0usize,
-            concat!("Offset of field: ", stringify!(sockaddr_in), "::", stringify!(sin_len))
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_in),
+                "::",
+                stringify!(sin_len)
+            )
         );
     }
     test_field_sin_len();
@@ -181,7 +217,12 @@ fn bindgen_test_layout_sockaddr_in() {
                 ::core::ptr::addr_of!((*ptr).sin_family) as usize - ptr as usize
             },
             1usize,
-            concat!("Offset of field: ", stringify!(sockaddr_in), "::", stringify!(sin_family))
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_in),
+                "::",
+                stringify!(sin_family)
+            )
         );
     }
     test_field_sin_family();
@@ -193,7 +234,12 @@ fn bindgen_test_layout_sockaddr_in() {
                 ::core::ptr::addr_of!((*ptr).sin_port) as usize - ptr as usize
             },
             2usize,
-            concat!("Offset of field: ", stringify!(sockaddr_in), "::", stringify!(sin_port))
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_in),
+                "::",
+                stringify!(sin_port)
+            )
         );
     }
     test_field_sin_port();
@@ -205,7 +251,12 @@ fn bindgen_test_layout_sockaddr_in() {
                 ::core::ptr::addr_of!((*ptr).sin_addr) as usize - ptr as usize
             },
             4usize,
-            concat!("Offset of field: ", stringify!(sockaddr_in), "::", stringify!(sin_addr))
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_in),
+                "::",
+                stringify!(sin_addr)
+            )
         );
     }
     test_field_sin_addr();
@@ -217,10 +268,140 @@ fn bindgen_test_layout_sockaddr_in() {
                 ::core::ptr::addr_of!((*ptr).sin_zero) as usize - ptr as usize
             },
             8usize,
-            concat!("Offset of field: ", stringify!(sockaddr_in), "::", stringify!(sin_zero))
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_in),
+                "::",
+                stringify!(sin_zero)
+            )
         );
     }
     test_field_sin_zero();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct sockaddr_in6 {
+    pub sin6_len: u8_t,
+    pub sin6_family: sa_family_t,
+    pub sin6_port: in_port_t,
+    pub sin6_flowinfo: u32_t,
+    pub sin6_addr: in6_addr,
+    pub sin6_scope_id: u32_t,
+}
+#[test]
+fn bindgen_test_layout_sockaddr_in6() {
+    assert_eq!(
+        ::core::mem::size_of::<sockaddr_in6>(),
+        28usize,
+        concat!("Size of: ", stringify!(sockaddr_in6))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<sockaddr_in6>(),
+        4usize,
+        concat!("Alignment of ", stringify!(sockaddr_in6))
+    );
+    fn test_field_sin6_len() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<sockaddr_in6>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).sin6_len) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_in6),
+                "::",
+                stringify!(sin6_len)
+            )
+        );
+    }
+    test_field_sin6_len();
+    fn test_field_sin6_family() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<sockaddr_in6>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).sin6_family) as usize - ptr as usize
+            },
+            1usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_in6),
+                "::",
+                stringify!(sin6_family)
+            )
+        );
+    }
+    test_field_sin6_family();
+    fn test_field_sin6_port() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<sockaddr_in6>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).sin6_port) as usize - ptr as usize
+            },
+            2usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_in6),
+                "::",
+                stringify!(sin6_port)
+            )
+        );
+    }
+    test_field_sin6_port();
+    fn test_field_sin6_flowinfo() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<sockaddr_in6>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).sin6_flowinfo) as usize - ptr as usize
+            },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_in6),
+                "::",
+                stringify!(sin6_flowinfo)
+            )
+        );
+    }
+    test_field_sin6_flowinfo();
+    fn test_field_sin6_addr() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<sockaddr_in6>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).sin6_addr) as usize - ptr as usize
+            },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_in6),
+                "::",
+                stringify!(sin6_addr)
+            )
+        );
+    }
+    test_field_sin6_addr();
+    fn test_field_sin6_scope_id() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<sockaddr_in6>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).sin6_scope_id) as usize - ptr as usize
+            },
+            24usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_in6),
+                "::",
+                stringify!(sin6_scope_id)
+            )
+        );
+    }
+    test_field_sin6_scope_id();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -249,7 +430,12 @@ fn bindgen_test_layout_sockaddr() {
                 ::core::ptr::addr_of!((*ptr).sa_len) as usize - ptr as usize
             },
             0usize,
-            concat!("Offset of field: ", stringify!(sockaddr), "::", stringify!(sa_len))
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr),
+                "::",
+                stringify!(sa_len)
+            )
         );
     }
     test_field_sa_len();
@@ -261,7 +447,12 @@ fn bindgen_test_layout_sockaddr() {
                 ::core::ptr::addr_of!((*ptr).sa_family) as usize - ptr as usize
             },
             1usize,
-            concat!("Offset of field: ", stringify!(sockaddr), "::", stringify!(sa_family))
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr),
+                "::",
+                stringify!(sa_family)
+            )
         );
     }
     test_field_sa_family();
@@ -273,7 +464,12 @@ fn bindgen_test_layout_sockaddr() {
                 ::core::ptr::addr_of!((*ptr).sa_data) as usize - ptr as usize
             },
             2usize,
-            concat!("Offset of field: ", stringify!(sockaddr), "::", stringify!(sa_data))
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr),
+                "::",
+                stringify!(sa_data)
+            )
         );
     }
     test_field_sa_data();
@@ -306,7 +502,12 @@ fn bindgen_test_layout_sockaddr_storage() {
                 ::core::ptr::addr_of!((*ptr).s2_len) as usize - ptr as usize
             },
             0usize,
-            concat!("Offset of field: ", stringify!(sockaddr_storage), "::", stringify!(s2_len))
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_storage),
+                "::",
+                stringify!(s2_len)
+            )
         );
     }
     test_field_s2_len();
@@ -318,7 +519,12 @@ fn bindgen_test_layout_sockaddr_storage() {
                 ::core::ptr::addr_of!((*ptr).ss_family) as usize - ptr as usize
             },
             1usize,
-            concat!("Offset of field: ", stringify!(sockaddr_storage), "::", stringify!(ss_family))
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_storage),
+                "::",
+                stringify!(ss_family)
+            )
         );
     }
     test_field_ss_family();
@@ -330,7 +536,12 @@ fn bindgen_test_layout_sockaddr_storage() {
                 ::core::ptr::addr_of!((*ptr).s2_data1) as usize - ptr as usize
             },
             2usize,
-            concat!("Offset of field: ", stringify!(sockaddr_storage), "::", stringify!(s2_data1))
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_storage),
+                "::",
+                stringify!(s2_data1)
+            )
         );
     }
     test_field_s2_data1();
@@ -342,10 +553,375 @@ fn bindgen_test_layout_sockaddr_storage() {
                 ::core::ptr::addr_of!((*ptr).s2_data2) as usize - ptr as usize
             },
             4usize,
-            concat!("Offset of field: ", stringify!(sockaddr_storage), "::", stringify!(s2_data2))
+            concat!(
+                "Offset of field: ",
+                stringify!(sockaddr_storage),
+                "::",
+                stringify!(s2_data2)
+            )
         );
     }
     test_field_s2_data2();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct iovec {
+    pub iov_base: *mut core::ffi::c_void,
+    pub iov_len: size_t,
+}
+#[test]
+fn bindgen_test_layout_iovec() {
+    assert_eq!(
+        ::core::mem::size_of::<iovec>(),
+        8usize,
+        concat!("Size of: ", stringify!(iovec))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<iovec>(),
+        4usize,
+        concat!("Alignment of ", stringify!(iovec))
+    );
+    fn test_field_iov_base() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<iovec>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).iov_base) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(iovec),
+                "::",
+                stringify!(iov_base)
+            )
+        );
+    }
+    test_field_iov_base();
+    fn test_field_iov_len() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<iovec>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).iov_len) as usize - ptr as usize
+            },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(iovec),
+                "::",
+                stringify!(iov_len)
+            )
+        );
+    }
+    test_field_iov_len();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ip_mreq {
+    pub imr_multiaddr: in_addr,
+    pub imr_interface: in_addr,
+}
+#[test]
+fn bindgen_test_layout_ip_mreq() {
+    assert_eq!(
+        ::core::mem::size_of::<ip_mreq>(),
+        8usize,
+        concat!("Size of: ", stringify!(ip_mreq))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<ip_mreq>(),
+        4usize,
+        concat!("Alignment of ", stringify!(ip_mreq))
+    );
+    fn test_field_imr_multiaddr() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<ip_mreq>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).imr_multiaddr) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(ip_mreq),
+                "::",
+                stringify!(imr_multiaddr)
+            )
+        );
+    }
+    test_field_imr_multiaddr();
+    fn test_field_imr_interface() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<ip_mreq>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).imr_interface) as usize - ptr as usize
+            },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(ip_mreq),
+                "::",
+                stringify!(imr_interface)
+            )
+        );
+    }
+    test_field_imr_interface();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ipv6_mreq {
+    pub ipv6mr_multiaddr: in6_addr,
+    pub ipv6mr_interface: core::ffi::c_uint,
+}
+#[test]
+fn bindgen_test_layout_ipv6_mreq() {
+    assert_eq!(
+        ::core::mem::size_of::<ipv6_mreq>(),
+        20usize,
+        concat!("Size of: ", stringify!(ipv6_mreq))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<ipv6_mreq>(),
+        4usize,
+        concat!("Alignment of ", stringify!(ipv6_mreq))
+    );
+    fn test_field_ipv6mr_multiaddr() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<ipv6_mreq>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).ipv6mr_multiaddr) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(ipv6_mreq),
+                "::",
+                stringify!(ipv6mr_multiaddr)
+            )
+        );
+    }
+    test_field_ipv6mr_multiaddr();
+    fn test_field_ipv6mr_interface() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<ipv6_mreq>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).ipv6mr_interface) as usize - ptr as usize
+            },
+            16usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(ipv6_mreq),
+                "::",
+                stringify!(ipv6mr_interface)
+            )
+        );
+    }
+    test_field_ipv6mr_interface();
+}
+pub type nfds_t = core::ffi::c_uint;
+pub const IPPROTO_IP: i32 = 0;
+pub const IPPROTO_ICMP: i32 = 1;
+pub const IPPROTO_TCP: i32 = 6;
+pub const IPPROTO_UDP: i32 = 17;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct fd_set {
+    pub fd_bits: [core::ffi::c_uchar; 1usize],
+}
+#[test]
+fn bindgen_test_layout_fd_set() {
+    assert_eq!(
+        ::core::mem::size_of::<fd_set>(),
+        1usize,
+        concat!("Size of: ", stringify!(fd_set))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<fd_set>(),
+        1usize,
+        concat!("Alignment of ", stringify!(fd_set))
+    );
+    fn test_field_fd_bits() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<fd_set>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).fd_bits) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(fd_set),
+                "::",
+                stringify!(fd_bits)
+            )
+        );
+    }
+    test_field_fd_bits();
+}
+pub const POLLIN: i16 = 1;
+pub const POLLOUT: i16 = 2;
+pub const POLLERR: i16 = 4;
+pub const POLLNVAL: i16 = 8;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct pollfd {
+    pub fd: core::ffi::c_int,
+    pub events: core::ffi::c_short,
+    pub revents: core::ffi::c_short,
+}
+#[test]
+fn bindgen_test_layout_pollfd() {
+    assert_eq!(
+        ::core::mem::size_of::<pollfd>(),
+        8usize,
+        concat!("Size of: ", stringify!(pollfd))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<pollfd>(),
+        4usize,
+        concat!("Alignment of ", stringify!(pollfd))
+    );
+    fn test_field_fd() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<pollfd>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).fd) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(pollfd),
+                "::",
+                stringify!(fd)
+            )
+        );
+    }
+    test_field_fd();
+    fn test_field_events() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<pollfd>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).events) as usize - ptr as usize
+            },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(pollfd),
+                "::",
+                stringify!(events)
+            )
+        );
+    }
+    test_field_events();
+    fn test_field_revents() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<pollfd>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).revents) as usize - ptr as usize
+            },
+            6usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(pollfd),
+                "::",
+                stringify!(revents)
+            )
+        );
+    }
+    test_field_revents();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct netif {
+    #[doc = " pointer to next in linked list"]
+    pub next: *mut netif,
+    #[doc = " IP address configuration in network byte order"]
+    pub ip_addr: ip_addr_t,
+    pub netmask: ip_addr_t,
+    pub gw: ip_addr_t,
+}
+#[test]
+fn bindgen_test_layout_netif() {
+    assert_eq!(
+        ::core::mem::size_of::<netif>(),
+        16usize,
+        concat!("Size of: ", stringify!(netif))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<netif>(),
+        4usize,
+        concat!("Alignment of ", stringify!(netif))
+    );
+    fn test_field_next() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<netif>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).next) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(netif),
+                "::",
+                stringify!(next)
+            )
+        );
+    }
+    test_field_next();
+    fn test_field_ip_addr() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<netif>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).ip_addr) as usize - ptr as usize
+            },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(netif),
+                "::",
+                stringify!(ip_addr)
+            )
+        );
+    }
+    test_field_ip_addr();
+    fn test_field_netmask() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<netif>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).netmask) as usize - ptr as usize
+            },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(netif),
+                "::",
+                stringify!(netmask)
+            )
+        );
+    }
+    test_field_netmask();
+    fn test_field_gw() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<netif>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).gw) as usize - ptr as usize
+            },
+            12usize,
+            concat!("Offset of field: ", stringify!(netif), "::", stringify!(gw))
+        );
+    }
+    test_field_gw();
 }
 pub type socklen_t = u32_t;
 extern "C" {
@@ -422,11 +998,7 @@ extern "C" {
     pub fn lwip_read(s: core::ffi::c_int, mem: *mut core::ffi::c_void, len: size_t) -> ssize_t;
 }
 extern "C" {
-    pub fn lwip_readv(
-        s: core::ffi::c_int,
-        iov: *const [u8; 0usize],
-        iovcnt: core::ffi::c_int,
-    ) -> ssize_t;
+    pub fn lwip_readv(s: core::ffi::c_int, iov: *const iovec, iovcnt: core::ffi::c_int) -> ssize_t;
 }
 extern "C" {
     pub fn lwip_recvfrom(
@@ -485,11 +1057,24 @@ extern "C" {
     ) -> ssize_t;
 }
 extern "C" {
-    pub fn lwip_writev(
-        s: core::ffi::c_int,
-        iov: *const [u8; 0usize],
-        iovcnt: core::ffi::c_int,
-    ) -> ssize_t;
+    pub fn lwip_writev(s: core::ffi::c_int, iov: *const iovec, iovcnt: core::ffi::c_int)
+        -> ssize_t;
+}
+extern "C" {
+    pub fn lwip_select(
+        maxfdp1: core::ffi::c_int,
+        readset: *mut fd_set,
+        writeset: *mut fd_set,
+        exceptset: *mut fd_set,
+        timeout: *mut [u8; 0usize],
+    ) -> core::ffi::c_int;
+}
+extern "C" {
+    pub fn lwip_poll(
+        fds: *const pollfd,
+        nfds: nfds_t,
+        timeout: core::ffi::c_int,
+    ) -> core::ffi::c_int;
 }
 extern "C" {
     pub fn lwip_ioctl(
@@ -520,527 +1105,175 @@ extern "C" {
         dst: *mut core::ffi::c_void,
     ) -> core::ffi::c_int;
 }
-#[doc = " pbuf data is stored in RAM, used for TX mostly, struct pbuf and its payload"]
-#[doc = "are allocated in one piece of contiguous memory (so the first payload byte"]
-#[doc = "can be calculated from struct pbuf)."]
-#[doc = "pbuf_alloc() allocates PBUF_RAM pbufs as unchained pbufs (although that might"]
-#[doc = "change in future versions)."]
-#[doc = "This should be used for all OUTGOING packets (TX)."]
-pub const pbuf_type_PBUF_RAM: pbuf_type = 640;
-#[doc = " pbuf data is stored in ROM, i.e. struct pbuf and its payload are located in"]
-#[doc = "totally different memory areas. Since it points to ROM, payload does not"]
-#[doc = "have to be copied when queued for transmission."]
-pub const pbuf_type_PBUF_ROM: pbuf_type = 1;
-#[doc = " pbuf comes from the pbuf pool. Much like PBUF_ROM but payload might change"]
-#[doc = "so it has to be duplicated when queued before transmitting, depending on"]
-#[doc = "who has a 'ref' to it."]
-pub const pbuf_type_PBUF_REF: pbuf_type = 65;
-#[doc = " pbuf payload refers to RAM. This one comes from a pool and should be used"]
-#[doc = "for RX. Payload can be chained (scatter-gather RX) but like PBUF_RAM, struct"]
-#[doc = "pbuf and its payload are allocated in one piece of contiguous memory (so"]
-#[doc = "the first payload byte can be calculated from struct pbuf)."]
-#[doc = "Don't use this for TX, if the pool becomes empty e.g. because of TCP queuing,"]
-#[doc = "you are unable to receive TCP acks!"]
-pub const pbuf_type_PBUF_POOL: pbuf_type = 386;
-pub type pbuf_type = core::ffi::c_uint;
-#[doc = " Includes spare room for transport layer header, e.g. UDP header."]
-#[doc = " Use this if you intend to pass the pbuf to functions like udp_send()."]
-pub const pbuf_layer_PBUF_TRANSPORT: pbuf_layer = 54;
-#[doc = " Includes spare room for IP header."]
-#[doc = " Use this if you intend to pass the pbuf to functions like raw_send()."]
-pub const pbuf_layer_PBUF_IP: pbuf_layer = 34;
-#[doc = " Includes spare room for link layer header (ethernet header)."]
-#[doc = " Use this if you intend to pass the pbuf to functions like ethernet_output()."]
-#[doc = " @see PBUF_LINK_HLEN"]
-pub const pbuf_layer_PBUF_LINK: pbuf_layer = 14;
-#[doc = " Includes spare room for additional encapsulation header before ethernet"]
-#[doc = " headers (e.g. 802.11)."]
-#[doc = " Use this if you intend to pass the pbuf to functions like netif->linkoutput()."]
-#[doc = " @see PBUF_LINK_ENCAPSULATION_HLEN"]
-pub const pbuf_layer_PBUF_RAW_TX: pbuf_layer = 0;
-#[doc = " Use this for input packets in a netif driver when calling netif->input()"]
-#[doc = " in the most common case - ethernet-layer netif driver."]
-pub const pbuf_layer_PBUF_RAW: pbuf_layer = 0;
-pub type pbuf_layer = core::ffi::c_uint;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct pbuf {
-    #[doc = " next pbuf in singly linked pbuf chain"]
-    pub next: *mut pbuf,
-    #[doc = " pointer to the actual data in the buffer"]
-    pub payload: *mut core::ffi::c_void,
-    #[doc = " total length of this buffer and all next buffers in chain"]
-    #[doc = " belonging to the same packet."]
-    #[doc = ""]
-    #[doc = " For non-queue packet chains this is the invariant:"]
-    #[doc = " p->tot_len == p->len + (p->next? p->next->tot_len: 0)"]
-    pub tot_len: u16_t,
-    #[doc = " length of this buffer"]
-    pub len: u16_t,
-    #[doc = " a bit field indicating pbuf type and allocation sources"]
-    #[doc = "(see PBUF_TYPE_FLAG_*, PBUF_ALLOC_FLAG_* and PBUF_TYPE_ALLOC_SRC_MASK)"]
-    pub type_internal: u8_t,
-    #[doc = " misc flags"]
-    pub flags: u8_t,
-    #[doc = " the reference count always equals the number of pointers"]
-    #[doc = " that refer to this pbuf. This can be pointers from an application,"]
-    #[doc = " the stack itself, or pbuf->next pointers from a chain."]
-    pub ref_: u8_t,
-    #[doc = " For incoming packets, this contains the input netif's index"]
-    pub if_idx: u8_t,
+pub struct addrinfo {
+    pub ai_flags: core::ffi::c_int,
+    pub ai_family: core::ffi::c_int,
+    pub ai_socktype: core::ffi::c_int,
+    pub ai_protocol: core::ffi::c_int,
+    pub ai_addrlen: socklen_t,
+    pub ai_addr: *mut sockaddr,
+    pub ai_canonname: *mut core::ffi::c_char,
+    pub ai_next: *mut addrinfo,
 }
 #[test]
-fn bindgen_test_layout_pbuf() {
-    assert_eq!(::core::mem::size_of::<pbuf>(), 16usize, concat!("Size of: ", stringify!(pbuf)));
-    assert_eq!(::core::mem::align_of::<pbuf>(), 4usize, concat!("Alignment of ", stringify!(pbuf)));
-    fn test_field_next() {
+fn bindgen_test_layout_addrinfo() {
+    assert_eq!(
+        ::core::mem::size_of::<addrinfo>(),
+        32usize,
+        concat!("Size of: ", stringify!(addrinfo))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<addrinfo>(),
+        4usize,
+        concat!("Alignment of ", stringify!(addrinfo))
+    );
+    fn test_field_ai_flags() {
         assert_eq!(
             unsafe {
-                let uninit = ::core::mem::MaybeUninit::<pbuf>::uninit();
+                let uninit = ::core::mem::MaybeUninit::<addrinfo>::uninit();
                 let ptr = uninit.as_ptr();
-                ::core::ptr::addr_of!((*ptr).next) as usize - ptr as usize
+                ::core::ptr::addr_of!((*ptr).ai_flags) as usize - ptr as usize
             },
             0usize,
-            concat!("Offset of field: ", stringify!(pbuf), "::", stringify!(next))
+            concat!(
+                "Offset of field: ",
+                stringify!(addrinfo),
+                "::",
+                stringify!(ai_flags)
+            )
         );
     }
-    test_field_next();
-    fn test_field_payload() {
+    test_field_ai_flags();
+    fn test_field_ai_family() {
         assert_eq!(
             unsafe {
-                let uninit = ::core::mem::MaybeUninit::<pbuf>::uninit();
+                let uninit = ::core::mem::MaybeUninit::<addrinfo>::uninit();
                 let ptr = uninit.as_ptr();
-                ::core::ptr::addr_of!((*ptr).payload) as usize - ptr as usize
+                ::core::ptr::addr_of!((*ptr).ai_family) as usize - ptr as usize
             },
             4usize,
-            concat!("Offset of field: ", stringify!(pbuf), "::", stringify!(payload))
+            concat!(
+                "Offset of field: ",
+                stringify!(addrinfo),
+                "::",
+                stringify!(ai_family)
+            )
         );
     }
-    test_field_payload();
-    fn test_field_tot_len() {
+    test_field_ai_family();
+    fn test_field_ai_socktype() {
         assert_eq!(
             unsafe {
-                let uninit = ::core::mem::MaybeUninit::<pbuf>::uninit();
+                let uninit = ::core::mem::MaybeUninit::<addrinfo>::uninit();
                 let ptr = uninit.as_ptr();
-                ::core::ptr::addr_of!((*ptr).tot_len) as usize - ptr as usize
+                ::core::ptr::addr_of!((*ptr).ai_socktype) as usize - ptr as usize
             },
             8usize,
-            concat!("Offset of field: ", stringify!(pbuf), "::", stringify!(tot_len))
+            concat!(
+                "Offset of field: ",
+                stringify!(addrinfo),
+                "::",
+                stringify!(ai_socktype)
+            )
         );
     }
-    test_field_tot_len();
-    fn test_field_len() {
+    test_field_ai_socktype();
+    fn test_field_ai_protocol() {
         assert_eq!(
             unsafe {
-                let uninit = ::core::mem::MaybeUninit::<pbuf>::uninit();
+                let uninit = ::core::mem::MaybeUninit::<addrinfo>::uninit();
                 let ptr = uninit.as_ptr();
-                ::core::ptr::addr_of!((*ptr).len) as usize - ptr as usize
-            },
-            10usize,
-            concat!("Offset of field: ", stringify!(pbuf), "::", stringify!(len))
-        );
-    }
-    test_field_len();
-    fn test_field_type_internal() {
-        assert_eq!(
-            unsafe {
-                let uninit = ::core::mem::MaybeUninit::<pbuf>::uninit();
-                let ptr = uninit.as_ptr();
-                ::core::ptr::addr_of!((*ptr).type_internal) as usize - ptr as usize
+                ::core::ptr::addr_of!((*ptr).ai_protocol) as usize - ptr as usize
             },
             12usize,
-            concat!("Offset of field: ", stringify!(pbuf), "::", stringify!(type_internal))
+            concat!(
+                "Offset of field: ",
+                stringify!(addrinfo),
+                "::",
+                stringify!(ai_protocol)
+            )
         );
     }
-    test_field_type_internal();
-    fn test_field_flags() {
+    test_field_ai_protocol();
+    fn test_field_ai_addrlen() {
         assert_eq!(
             unsafe {
-                let uninit = ::core::mem::MaybeUninit::<pbuf>::uninit();
+                let uninit = ::core::mem::MaybeUninit::<addrinfo>::uninit();
                 let ptr = uninit.as_ptr();
-                ::core::ptr::addr_of!((*ptr).flags) as usize - ptr as usize
+                ::core::ptr::addr_of!((*ptr).ai_addrlen) as usize - ptr as usize
             },
-            13usize,
-            concat!("Offset of field: ", stringify!(pbuf), "::", stringify!(flags))
+            16usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(addrinfo),
+                "::",
+                stringify!(ai_addrlen)
+            )
         );
     }
-    test_field_flags();
-    fn test_field_ref() {
+    test_field_ai_addrlen();
+    fn test_field_ai_addr() {
         assert_eq!(
             unsafe {
-                let uninit = ::core::mem::MaybeUninit::<pbuf>::uninit();
+                let uninit = ::core::mem::MaybeUninit::<addrinfo>::uninit();
                 let ptr = uninit.as_ptr();
-                ::core::ptr::addr_of!((*ptr).ref_) as usize - ptr as usize
+                ::core::ptr::addr_of!((*ptr).ai_addr) as usize - ptr as usize
             },
-            14usize,
-            concat!("Offset of field: ", stringify!(pbuf), "::", stringify!(ref_))
+            20usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(addrinfo),
+                "::",
+                stringify!(ai_addr)
+            )
         );
     }
-    test_field_ref();
-    fn test_field_if_idx() {
+    test_field_ai_addr();
+    fn test_field_ai_canonname() {
         assert_eq!(
             unsafe {
-                let uninit = ::core::mem::MaybeUninit::<pbuf>::uninit();
+                let uninit = ::core::mem::MaybeUninit::<addrinfo>::uninit();
                 let ptr = uninit.as_ptr();
-                ::core::ptr::addr_of!((*ptr).if_idx) as usize - ptr as usize
+                ::core::ptr::addr_of!((*ptr).ai_canonname) as usize - ptr as usize
             },
-            15usize,
-            concat!("Offset of field: ", stringify!(pbuf), "::", stringify!(if_idx))
+            24usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(addrinfo),
+                "::",
+                stringify!(ai_canonname)
+            )
         );
     }
-    test_field_if_idx();
+    test_field_ai_canonname();
+    fn test_field_ai_next() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<addrinfo>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).ai_next) as usize - ptr as usize
+            },
+            28usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(addrinfo),
+                "::",
+                stringify!(ai_next)
+            )
+        );
+    }
+    test_field_ai_next();
 }
 extern "C" {
-    pub fn pbuf_alloc(l: pbuf_layer, length: u16_t, type_: pbuf_type) -> *mut pbuf;
+    pub fn lwip_freeaddrinfo(ai: *mut addrinfo);
 }
 extern "C" {
-    pub fn pbuf_alloc_reference(
-        payload: *mut core::ffi::c_void,
-        length: u16_t,
-        type_: pbuf_type,
-    ) -> *mut pbuf;
-}
-extern "C" {
-    pub fn pbuf_realloc(p: *mut pbuf, size: u16_t);
-}
-extern "C" {
-    pub fn pbuf_header(p: *mut pbuf, header_size: s16_t) -> u8_t;
-}
-extern "C" {
-    pub fn pbuf_header_force(p: *mut pbuf, header_size: s16_t) -> u8_t;
-}
-extern "C" {
-    pub fn pbuf_add_header(p: *mut pbuf, header_size_increment: size_t) -> u8_t;
-}
-extern "C" {
-    pub fn pbuf_add_header_force(p: *mut pbuf, header_size_increment: size_t) -> u8_t;
-}
-extern "C" {
-    pub fn pbuf_remove_header(p: *mut pbuf, header_size: size_t) -> u8_t;
-}
-extern "C" {
-    pub fn pbuf_free_header(q: *mut pbuf, size: u16_t) -> *mut pbuf;
-}
-extern "C" {
-    pub fn pbuf_ref(p: *mut pbuf);
-}
-extern "C" {
-    pub fn pbuf_free(p: *mut pbuf) -> u8_t;
-}
-extern "C" {
-    pub fn pbuf_clen(p: *const pbuf) -> u16_t;
-}
-extern "C" {
-    pub fn pbuf_cat(head: *mut pbuf, tail: *mut pbuf);
-}
-extern "C" {
-    pub fn pbuf_chain(head: *mut pbuf, tail: *mut pbuf);
-}
-extern "C" {
-    pub fn pbuf_dechain(p: *mut pbuf) -> *mut pbuf;
-}
-extern "C" {
-    pub fn pbuf_copy(p_to: *mut pbuf, p_from: *const pbuf) -> err_t;
-}
-extern "C" {
-    pub fn pbuf_copy_partial(
-        p: *const pbuf,
-        dataptr: *mut core::ffi::c_void,
-        len: u16_t,
-        offset: u16_t,
-    ) -> u16_t;
-}
-extern "C" {
-    pub fn pbuf_get_contiguous(
-        p: *const pbuf,
-        buffer: *mut core::ffi::c_void,
-        bufsize: size_t,
-        len: u16_t,
-        offset: u16_t,
-    ) -> *mut core::ffi::c_void;
-}
-extern "C" {
-    pub fn pbuf_take(buf: *mut pbuf, dataptr: *const core::ffi::c_void, len: u16_t) -> err_t;
-}
-extern "C" {
-    pub fn pbuf_take_at(
-        buf: *mut pbuf,
-        dataptr: *const core::ffi::c_void,
-        len: u16_t,
-        offset: u16_t,
-    ) -> err_t;
-}
-extern "C" {
-    pub fn pbuf_skip(in_: *mut pbuf, in_offset: u16_t, out_offset: *mut u16_t) -> *mut pbuf;
-}
-extern "C" {
-    pub fn pbuf_coalesce(p: *mut pbuf, layer: pbuf_layer) -> *mut pbuf;
-}
-extern "C" {
-    pub fn pbuf_clone(l: pbuf_layer, type_: pbuf_type, p: *mut pbuf) -> *mut pbuf;
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct udp_pcb {
-    _unused: [u8; 0],
-}
-pub type udp_recv_fn = ::core::option::Option<
-    unsafe extern "C" fn(
-        arg: *mut core::ffi::c_void,
-        pcb: *mut udp_pcb,
-        p: *mut pbuf,
-        addr: *const ip_addr_t,
-        port: u16_t,
-    ),
->;
-extern "C" {
-    pub fn udp_new() -> *mut udp_pcb;
-}
-extern "C" {
-    pub fn udp_new_ip_type(type_: u8_t) -> *mut udp_pcb;
-}
-extern "C" {
-    pub fn udp_remove(pcb: *mut udp_pcb);
-}
-extern "C" {
-    pub fn udp_bind(pcb: *mut udp_pcb, ipaddr: *const ip_addr_t, port: u16_t) -> err_t;
-}
-extern "C" {
-    pub fn udp_bind_netif(pcb: *mut udp_pcb, netif: *const [u8; 0usize]);
-}
-extern "C" {
-    pub fn udp_connect(pcb: *mut udp_pcb, ipaddr: *const ip_addr_t, port: u16_t) -> err_t;
-}
-extern "C" {
-    pub fn udp_disconnect(pcb: *mut udp_pcb);
-}
-extern "C" {
-    pub fn udp_recv(pcb: *mut udp_pcb, recv: udp_recv_fn, recv_arg: *mut core::ffi::c_void);
-}
-extern "C" {
-    pub fn udp_sendto_if(
-        pcb: *mut udp_pcb,
-        p: *mut pbuf,
-        dst_ip: *const ip_addr_t,
-        dst_port: u16_t,
-        netif: *mut [u8; 0usize],
-    ) -> err_t;
-}
-extern "C" {
-    pub fn udp_sendto_if_src(
-        pcb: *mut udp_pcb,
-        p: *mut pbuf,
-        dst_ip: *const ip_addr_t,
-        dst_port: u16_t,
-        netif: *mut [u8; 0usize],
-        src_ip: *const ip_addr_t,
-    ) -> err_t;
-}
-extern "C" {
-    pub fn udp_sendto(
-        pcb: *mut udp_pcb,
-        p: *mut pbuf,
-        dst_ip: *const ip_addr_t,
-        dst_port: u16_t,
-    ) -> err_t;
-}
-extern "C" {
-    pub fn udp_send(pcb: *mut udp_pcb, p: *mut pbuf) -> err_t;
-}
-extern "C" {
-    pub fn udp_sendto_if_chksum(
-        pcb: *mut udp_pcb,
-        p: *mut pbuf,
-        dst_ip: *const ip_addr_t,
-        dst_port: u16_t,
-        netif: *mut [u8; 0usize],
-        have_chksum: u8_t,
-        chksum: u16_t,
-    ) -> err_t;
-}
-extern "C" {
-    pub fn udp_sendto_chksum(
-        pcb: *mut udp_pcb,
-        p: *mut pbuf,
-        dst_ip: *const ip_addr_t,
-        dst_port: u16_t,
-        have_chksum: u8_t,
-        chksum: u16_t,
-    ) -> err_t;
-}
-extern "C" {
-    pub fn udp_send_chksum(
-        pcb: *mut udp_pcb,
-        p: *mut pbuf,
-        have_chksum: u8_t,
-        chksum: u16_t,
-    ) -> err_t;
-}
-extern "C" {
-    pub fn udp_sendto_if_src_chksum(
-        pcb: *mut udp_pcb,
-        p: *mut pbuf,
-        dst_ip: *const ip_addr_t,
-        dst_port: u16_t,
-        netif: *mut [u8; 0usize],
-        have_chksum: u8_t,
-        chksum: u16_t,
-        src_ip: *const ip_addr_t,
-    ) -> err_t;
-}
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct tcp_pcb {
-    _unused: [u8; 0],
-}
-#[doc = " Function prototype for tcp accept callback functions. Called when a new"]
-#[doc = " connection can be accepted on a listening pcb."]
-#[doc = ""]
-#[doc = " @param arg Additional argument to pass to the callback function (@see tcp_arg())"]
-#[doc = " @param newpcb The new connection pcb"]
-#[doc = " @param err An error code if there has been an error accepting."]
-#[doc = "            Only return ERR_ABRT if you have called tcp_abort from within the"]
-#[doc = "            callback function!"]
-pub type tcp_accept_fn = ::core::option::Option<
-    unsafe extern "C" fn(arg: *mut core::ffi::c_void, newpcb: *mut tcp_pcb, err: err_t) -> err_t,
->;
-#[doc = " Function prototype for tcp receive callback functions. Called when data has"]
-#[doc = " been received."]
-#[doc = ""]
-#[doc = " @param arg Additional argument to pass to the callback function (@see tcp_arg())"]
-#[doc = " @param tpcb The connection pcb which received data"]
-#[doc = " @param p The received data (or NULL when the connection has been closed!)"]
-#[doc = " @param err An error code if there has been an error receiving"]
-#[doc = "            Only return ERR_ABRT if you have called tcp_abort from within the"]
-#[doc = "            callback function!"]
-pub type tcp_recv_fn = ::core::option::Option<
-    unsafe extern "C" fn(
-        arg: *mut core::ffi::c_void,
-        tpcb: *mut tcp_pcb,
-        p: *mut pbuf,
-        err: err_t,
-    ) -> err_t,
->;
-#[doc = " Function prototype for tcp sent callback functions. Called when sent data has"]
-#[doc = " been acknowledged by the remote side. Use it to free corresponding resources."]
-#[doc = " This also means that the pcb has now space available to send new data."]
-#[doc = ""]
-#[doc = " @param arg Additional argument to pass to the callback function (@see tcp_arg())"]
-#[doc = " @param tpcb The connection pcb for which data has been acknowledged"]
-#[doc = " @param len The amount of bytes acknowledged"]
-#[doc = " @return ERR_OK: try to send some data by calling tcp_output"]
-#[doc = "            Only return ERR_ABRT if you have called tcp_abort from within the"]
-#[doc = "            callback function!"]
-pub type tcp_sent_fn = ::core::option::Option<
-    unsafe extern "C" fn(arg: *mut core::ffi::c_void, tpcb: *mut tcp_pcb, len: u16_t) -> err_t,
->;
-#[doc = " Function prototype for tcp poll callback functions. Called periodically as"]
-#[doc = " specified by @see tcp_poll."]
-#[doc = ""]
-#[doc = " @param arg Additional argument to pass to the callback function (@see tcp_arg())"]
-#[doc = " @param tpcb tcp pcb"]
-#[doc = " @return ERR_OK: try to send some data by calling tcp_output"]
-#[doc = "            Only return ERR_ABRT if you have called tcp_abort from within the"]
-#[doc = "            callback function!"]
-pub type tcp_poll_fn = ::core::option::Option<
-    unsafe extern "C" fn(arg: *mut core::ffi::c_void, tpcb: *mut tcp_pcb) -> err_t,
->;
-#[doc = " Function prototype for tcp error callback functions. Called when the pcb"]
-#[doc = " receives a RST or is unexpectedly closed for any other reason."]
-#[doc = ""]
-#[doc = " @note The corresponding pcb is already freed when this callback is called!"]
-#[doc = ""]
-#[doc = " @param arg Additional argument to pass to the callback function (@see tcp_arg())"]
-#[doc = " @param err Error code to indicate why the pcb has been closed"]
-#[doc = "            ERR_ABRT: aborted through tcp_abort or by a TCP timer"]
-#[doc = "            ERR_RST: the connection was reset by the remote host"]
-pub type tcp_err_fn =
-    ::core::option::Option<unsafe extern "C" fn(arg: *mut core::ffi::c_void, err: err_t)>;
-#[doc = " Function prototype for tcp connected callback functions. Called when a pcb"]
-#[doc = " is connected to the remote side after initiating a connection attempt by"]
-#[doc = " calling tcp_connect()."]
-#[doc = ""]
-#[doc = " @param arg Additional argument to pass to the callback function (@see tcp_arg())"]
-#[doc = " @param tpcb The connection pcb which is connected"]
-#[doc = " @param err An unused error code, always ERR_OK currently ;-) @todo!"]
-#[doc = "            Only return ERR_ABRT if you have called tcp_abort from within the"]
-#[doc = "            callback function!"]
-#[doc = ""]
-#[doc = " @note When a connection attempt fails, the error callback is currently called!"]
-pub type tcp_connected_fn = ::core::option::Option<
-    unsafe extern "C" fn(arg: *mut core::ffi::c_void, tpcb: *mut tcp_pcb, err: err_t) -> err_t,
->;
-extern "C" {
-    pub fn tcp_new() -> *mut tcp_pcb;
-}
-extern "C" {
-    pub fn tcp_new_ip_type(type_: u8_t) -> *mut tcp_pcb;
-}
-extern "C" {
-    pub fn tcp_arg(pcb: *mut tcp_pcb, arg: *mut core::ffi::c_void);
-}
-extern "C" {
-    pub fn tcp_poll(pcb: *mut tcp_pcb, poll: tcp_poll_fn, interval: u8_t);
-}
-extern "C" {
-    pub fn tcp_recved(pcb: *mut tcp_pcb, len: u16_t);
-}
-extern "C" {
-    pub fn tcp_bind(pcb: *mut tcp_pcb, ipaddr: *const ip_addr_t, port: u16_t) -> err_t;
-}
-extern "C" {
-    pub fn tcp_bind_netif(pcb: *mut tcp_pcb, netif: *const [u8; 0usize]);
-}
-extern "C" {
-    pub fn tcp_connect(
-        pcb: *mut tcp_pcb,
-        ipaddr: *const ip_addr_t,
-        port: u16_t,
-        connected: tcp_connected_fn,
-    ) -> err_t;
-}
-extern "C" {
-    pub fn tcp_listen_with_backlog_and_err(
-        pcb: *mut tcp_pcb,
-        backlog: u8_t,
-        err: *mut err_t,
-    ) -> *mut tcp_pcb;
-}
-extern "C" {
-    pub fn tcp_listen_with_backlog(pcb: *mut tcp_pcb, backlog: u8_t) -> *mut tcp_pcb;
-}
-extern "C" {
-    pub fn tcp_abort(pcb: *mut tcp_pcb);
-}
-extern "C" {
-    pub fn tcp_close(pcb: *mut tcp_pcb) -> err_t;
-}
-extern "C" {
-    pub fn tcp_shutdown(
-        pcb: *mut tcp_pcb,
-        shut_rx: core::ffi::c_int,
-        shut_tx: core::ffi::c_int,
-    ) -> err_t;
-}
-extern "C" {
-    pub fn tcp_write(
-        pcb: *mut tcp_pcb,
-        dataptr: *const core::ffi::c_void,
-        len: u16_t,
-        apiflags: u8_t,
-    ) -> err_t;
-}
-extern "C" {
-    pub fn tcp_setprio(pcb: *mut tcp_pcb, prio: u8_t);
-}
-extern "C" {
-    pub fn tcp_output(pcb: *mut tcp_pcb) -> err_t;
-}
-extern "C" {
-    pub fn tcp_tcp_get_tcp_addrinfo(
-        pcb: *mut tcp_pcb,
-        local: core::ffi::c_int,
-        addr: *mut ip_addr_t,
-        port: *mut u16_t,
-    ) -> err_t;
+    pub fn lwip_getaddrinfo(
+        nodename: *const core::ffi::c_char,
+        servname: *const core::ffi::c_char,
+        hints: *const addrinfo,
+        res: *mut *mut addrinfo,
+    ) -> core::ffi::c_int;
 }
