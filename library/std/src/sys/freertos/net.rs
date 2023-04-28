@@ -38,38 +38,8 @@ pub mod netc {
         static gnetif: netif;
     }
 
-    // ###################################################################################################
-
-    // These constants need to be consistent with the definitions in LwIP's sockets.h
-    // which unfortunately do not appear in the Rust bindings.
-    // They have all been checked against these.
-    pub const AF_INET6: i32 = 10; // Not supported in LwIP
-    pub const AF_INET: i32 = 2;
-    pub const IPPROTO_IPV6: i32 = 41; // Not supported in LwIP
-    pub const IPV6_ADD_MEMBERSHIP: i32 = 12; // Not supported in LwIP
-    pub const IPV6_DROP_MEMBERSHIP: i32 = 13; // Not supported in LwIP
+    // This constant not in LwIP Rust bindings, but needed by sys_common\net.rs
     pub const IPV6_MULTICAST_LOOP: i32 = 19; // Not supported in LwIP
-    pub const IPV6_V6ONLY: i32 = 27; // Not supported in LwIP
-    pub const IP_TTL: i32 = 2;
-    pub const IP_MULTICAST_TTL: i32 = 5;
-    pub const IP_MULTICAST_LOOP: i32 = 7;
-    pub const IP_ADD_MEMBERSHIP: i32 = 3;
-    pub const IP_DROP_MEMBERSHIP: i32 = 4;
-    pub const SHUT_RD: i32 = 0;
-    pub const SHUT_RDWR: i32 = 2;
-    pub const SHUT_WR: i32 = 1;
-    pub const SOCK_DGRAM: i32 = 2;
-    pub const SOCK_STREAM: i32 = 1;
-    pub const SOL_SOCKET: i32 = 0xfff;
-    pub const SO_BROADCAST: i32 = 32;
-    pub const SO_ERROR: i32 = 0x1007;
-    pub const SO_RCVTIMEO: i32 = 0x1006;
-    pub const SO_REUSEADDR: i32 = 4;
-    pub const SO_SNDTIMEO: i32 = 0x1005;
-    pub const SO_LINGER: i32 = 0x80;
-    pub const TCP_NODELAY: i32 = 1;
-    pub const MSG_PEEK: c_int = 1;
-    pub const FIONBIO: c_long = 0x8004667eu32 as c_long; // corrected: differs from Windows implementation
 
     pub fn setsockopt(
         sock: RawSocket,

@@ -6,10 +6,13 @@ pub const ETHARP_SUPPORT_STATIC_ENTRIES: u32 = 0;
 pub const PBUF_LINK_HLEN: u32 = 14;
 pub const PBUF_LINK_ENCAPSULATION_HLEN: u32 = 0;
 pub const SIN_ZERO_LEN: u32 = 8;
-pub const IPPROTO_UDPLITE: u32 = 136;
-pub const IPPROTO_RAW: u32 = 255;
 pub const MEMP_NUM_NETCONN: u32 = 8;
 pub const FD_SETSIZE: u32 = 8;
+pub const IOCPARM_MASK: u32 = 127;
+pub const IOC_VOID: u32 = 536870912;
+pub const IOC_OUT: u32 = 1073741824;
+pub const IOC_IN: u32 = 2147483648;
+pub const IOC_INOUT: u32 = 3221225472;
 pub type int_least64_t = i64;
 pub type uint_least64_t = u64;
 pub type int_fast64_t = i64;
@@ -723,10 +726,7 @@ fn bindgen_test_layout_ipv6_mreq() {
     test_field_ipv6mr_interface();
 }
 pub type nfds_t = core::ffi::c_uint;
-pub const IPPROTO_IP: i32 = 0;
-pub const IPPROTO_ICMP: i32 = 1;
-pub const IPPROTO_TCP: i32 = 6;
-pub const IPPROTO_UDP: i32 = 17;
+pub type socklen_t = u32_t;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct fd_set {
@@ -762,10 +762,129 @@ fn bindgen_test_layout_fd_set() {
     }
     test_field_fd_bits();
 }
+pub const SOCK_STREAM: core::ffi::c_int = 1;
+pub const SOCK_DGRAM: core::ffi::c_int = 2;
+pub const SOCK_RAW: core::ffi::c_int = 3;
+pub const SO_REUSEADDR: core::ffi::c_int = 4;
+pub const SO_KEEPALIVE: core::ffi::c_int = 8;
+pub const SO_BROADCAST: core::ffi::c_int = 32;
+pub const SO_DEBUG: core::ffi::c_int = 1;
+pub const SO_ACCEPTCONN: core::ffi::c_int = 2;
+pub const SO_DONTROUTE: core::ffi::c_int = 16;
+pub const SO_USELOOPBACK: core::ffi::c_int = 64;
+pub const SO_LINGER: core::ffi::c_int = 128;
+pub const SO_DONTLINGER: core::ffi::c_int = -129;
+pub const SO_OOBINLINE: core::ffi::c_int = 256;
+pub const SO_REUSEPORT: core::ffi::c_int = 512;
+pub const SO_SNDBUF: core::ffi::c_int = 4097;
+pub const SO_RCVBUF: core::ffi::c_int = 4098;
+pub const SO_SNDLOWAT: core::ffi::c_int = 4099;
+pub const SO_RCVLOWAT: core::ffi::c_int = 4100;
+pub const SO_SNDTIMEO: core::ffi::c_int = 4101;
+pub const SO_RCVTIMEO: core::ffi::c_int = 4102;
+pub const SO_ERROR: core::ffi::c_int = 4103;
+pub const SO_TYPE: core::ffi::c_int = 4104;
+pub const SO_CONTIMEO: core::ffi::c_int = 4105;
+pub const SO_NO_CHECK: core::ffi::c_int = 4106;
+pub const SO_BINDTODEVICE: core::ffi::c_int = 4107;
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct linger {
+    pub l_onoff: core::ffi::c_int,
+    pub l_linger: core::ffi::c_int,
+}
+#[test]
+fn bindgen_test_layout_linger() {
+    assert_eq!(
+        ::core::mem::size_of::<linger>(),
+        8usize,
+        concat!("Size of: ", stringify!(linger))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<linger>(),
+        4usize,
+        concat!("Alignment of ", stringify!(linger))
+    );
+    fn test_field_l_onoff() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<linger>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).l_onoff) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(linger),
+                "::",
+                stringify!(l_onoff)
+            )
+        );
+    }
+    test_field_l_onoff();
+    fn test_field_l_linger() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<linger>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).l_linger) as usize - ptr as usize
+            },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(linger),
+                "::",
+                stringify!(l_linger)
+            )
+        );
+    }
+    test_field_l_linger();
+}
+pub const SOL_SOCKET: core::ffi::c_int = 4095;
+pub const AF_UNSPEC: core::ffi::c_int = 0;
+pub const AF_INET: core::ffi::c_int = 2;
+pub const AF_INET6: core::ffi::c_int = 0;
+pub const IPPROTO_IP: core::ffi::c_int = 0;
+pub const IPPROTO_ICMP: core::ffi::c_int = 1;
+pub const IPPROTO_TCP: core::ffi::c_int = 6;
+pub const IPPROTO_UDP: core::ffi::c_int = 17;
+pub const IPPROTO_IPV6: core::ffi::c_int = 41;
+pub const IPPROTO_ICMPV6: core::ffi::c_int = 58;
+pub const IPPROTO_UDPLITE: core::ffi::c_int = 136;
+pub const IPPROTO_RAW: core::ffi::c_int = 255;
+pub const MSG_PEEK: core::ffi::c_int = 1;
+pub const MSG_WAITALL: core::ffi::c_int = 2;
+pub const MSG_OOB: core::ffi::c_int = 4;
+pub const MSG_DONTWAIT: core::ffi::c_int = 8;
+pub const MSG_MORE: core::ffi::c_int = 16;
+pub const MSG_NOSIGNAL: core::ffi::c_int = 32;
+pub const IP_TOS: core::ffi::c_int = 1;
+pub const IP_TTL: core::ffi::c_int = 2;
+pub const IP_PKTINFO: core::ffi::c_int = 8;
+pub const TCP_NODELAY: core::ffi::c_int = 1;
+pub const TCP_KEEPALIVE: core::ffi::c_int = 2;
+pub const TCP_KEEPIDLE: core::ffi::c_int = 3;
+pub const TCP_KEEPINTVL: core::ffi::c_int = 4;
+pub const TCP_KEEPCNT: core::ffi::c_int = 5;
+pub const FIONBIO: core::ffi::c_long = -2147195266;
+pub const SHUT_RD: core::ffi::c_int = 0;
+pub const SHUT_WR: core::ffi::c_int = 1;
+pub const SHUT_RDWR: core::ffi::c_int = 2;
 pub const POLLIN: i16 = 1;
 pub const POLLOUT: i16 = 2;
 pub const POLLERR: i16 = 4;
 pub const POLLNVAL: i16 = 8;
+pub const IPV6_CHECKSUM: core::ffi::c_int = 7;
+pub const IPV6_V6ONLY: core::ffi::c_int = 27;
+pub const IP_MULTICAST_TTL: core::ffi::c_int = 5;
+pub const IP_MULTICAST_IF: core::ffi::c_int = 6;
+pub const IP_MULTICAST_LOOP: core::ffi::c_int = 7;
+pub const IP_ADD_MEMBERSHIP: core::ffi::c_int = 3;
+pub const IP_DROP_MEMBERSHIP: core::ffi::c_int = 4;
+pub const IPV6_JOIN_GROUP: core::ffi::c_int = 12;
+pub const IPV6_ADD_MEMBERSHIP: core::ffi::c_int = 12;
+pub const IPV6_LEAVE_GROUP: core::ffi::c_int = 13;
+pub const IPV6_DROP_MEMBERSHIP: core::ffi::c_int = 13;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct pollfd {
@@ -836,6 +955,202 @@ fn bindgen_test_layout_pollfd() {
         );
     }
     test_field_revents();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct timeval {
+    pub tv_sec: core::ffi::c_long,
+    pub tv_usec: core::ffi::c_long,
+}
+#[test]
+fn bindgen_test_layout_timeval() {
+    assert_eq!(
+        ::core::mem::size_of::<timeval>(),
+        8usize,
+        concat!("Size of: ", stringify!(timeval))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<timeval>(),
+        4usize,
+        concat!("Alignment of ", stringify!(timeval))
+    );
+    fn test_field_tv_sec() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<timeval>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).tv_sec) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(timeval),
+                "::",
+                stringify!(tv_sec)
+            )
+        );
+    }
+    test_field_tv_sec();
+    fn test_field_tv_usec() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<timeval>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).tv_usec) as usize - ptr as usize
+            },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(timeval),
+                "::",
+                stringify!(tv_usec)
+            )
+        );
+    }
+    test_field_tv_usec();
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct msghdr {
+    pub msg_name: *mut core::ffi::c_void,
+    pub msg_namelen: socklen_t,
+    pub msg_iov: *mut iovec,
+    pub msg_iovlen: core::ffi::c_int,
+    pub msg_control: *mut core::ffi::c_void,
+    pub msg_controllen: socklen_t,
+    pub msg_flags: core::ffi::c_int,
+}
+#[test]
+fn bindgen_test_layout_msghdr() {
+    assert_eq!(
+        ::core::mem::size_of::<msghdr>(),
+        28usize,
+        concat!("Size of: ", stringify!(msghdr))
+    );
+    assert_eq!(
+        ::core::mem::align_of::<msghdr>(),
+        4usize,
+        concat!("Alignment of ", stringify!(msghdr))
+    );
+    fn test_field_msg_name() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<msghdr>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).msg_name) as usize - ptr as usize
+            },
+            0usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(msghdr),
+                "::",
+                stringify!(msg_name)
+            )
+        );
+    }
+    test_field_msg_name();
+    fn test_field_msg_namelen() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<msghdr>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).msg_namelen) as usize - ptr as usize
+            },
+            4usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(msghdr),
+                "::",
+                stringify!(msg_namelen)
+            )
+        );
+    }
+    test_field_msg_namelen();
+    fn test_field_msg_iov() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<msghdr>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).msg_iov) as usize - ptr as usize
+            },
+            8usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(msghdr),
+                "::",
+                stringify!(msg_iov)
+            )
+        );
+    }
+    test_field_msg_iov();
+    fn test_field_msg_iovlen() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<msghdr>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).msg_iovlen) as usize - ptr as usize
+            },
+            12usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(msghdr),
+                "::",
+                stringify!(msg_iovlen)
+            )
+        );
+    }
+    test_field_msg_iovlen();
+    fn test_field_msg_control() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<msghdr>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).msg_control) as usize - ptr as usize
+            },
+            16usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(msghdr),
+                "::",
+                stringify!(msg_control)
+            )
+        );
+    }
+    test_field_msg_control();
+    fn test_field_msg_controllen() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<msghdr>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).msg_controllen) as usize - ptr as usize
+            },
+            20usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(msghdr),
+                "::",
+                stringify!(msg_controllen)
+            )
+        );
+    }
+    test_field_msg_controllen();
+    fn test_field_msg_flags() {
+        assert_eq!(
+            unsafe {
+                let uninit = ::core::mem::MaybeUninit::<msghdr>::uninit();
+                let ptr = uninit.as_ptr();
+                ::core::ptr::addr_of!((*ptr).msg_flags) as usize - ptr as usize
+            },
+            24usize,
+            concat!(
+                "Offset of field: ",
+                stringify!(msghdr),
+                "::",
+                stringify!(msg_flags)
+            )
+        );
+    }
+    test_field_msg_flags();
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -923,7 +1238,6 @@ fn bindgen_test_layout_netif() {
     }
     test_field_gw();
 }
-pub type socklen_t = u32_t;
 extern "C" {
     pub fn lwip_accept(
         s: core::ffi::c_int,
@@ -1013,7 +1327,7 @@ extern "C" {
 extern "C" {
     pub fn lwip_recvmsg(
         s: core::ffi::c_int,
-        message: *mut [u8; 0usize],
+        message: *mut msghdr,
         flags: core::ffi::c_int,
     ) -> ssize_t;
 }
@@ -1028,7 +1342,7 @@ extern "C" {
 extern "C" {
     pub fn lwip_sendmsg(
         s: core::ffi::c_int,
-        message: *const [u8; 0usize],
+        message: *const msghdr,
         flags: core::ffi::c_int,
     ) -> ssize_t;
 }
@@ -1066,7 +1380,7 @@ extern "C" {
         readset: *mut fd_set,
         writeset: *mut fd_set,
         exceptset: *mut fd_set,
-        timeout: *mut [u8; 0usize],
+        timeout: *mut timeval,
     ) -> core::ffi::c_int;
 }
 extern "C" {
