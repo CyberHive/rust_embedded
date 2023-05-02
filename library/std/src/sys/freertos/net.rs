@@ -33,122 +33,13 @@ pub mod netc {
     // Rust bindings for LwIP TCP/IP stack.
     include!("lwip-rs.rs");
 
-    // ###################################################################################################
-    // Also Rust bindings for LwIP TCP/IP stack - must integrate these into the above and remove from here
-    extern "C" {
-        pub fn lwip_getaddrinfo(
-            nodename: *const core::ffi::c_char,
-            servname: *const core::ffi::c_char,
-            hints: *const addrinfo,
-            res: *mut *mut addrinfo,
-        ) -> core::ffi::c_int;
-    }
-    extern "C" {
-        pub fn lwip_freeaddrinfo(ai: *mut addrinfo);
-    }
-
-    pub const POLLIN: c_ushort = 0x1;
-    pub const POLLOUT: c_ushort = 0x2;
-    pub const POLLERR: c_ushort = 0x4;
-
-    #[repr(C)]
-    #[derive(Debug, Copy, Clone)]
-    pub struct pollfd {
-        pub fd: c_int,
-        pub events: c_ushort,
-        pub revents: c_ushort,
-    }
-
-    extern "C" {
-        pub fn lwip_poll(fds: *const pollfd, nfds: c_uint, timeout: c_int) -> c_int;
-    }
-
-    // This definition is incomplete. The Rust code only needs to read the IP address to snoop on readiness for operation.
-    // So, we can omit the rest of the structure definition for this purpose (it is dependent on various C compile time
-    // configurations, so a pain to reproduce in Rust)
-    pub struct netif {
-        pub next: c_int,
-        pub ip_addr: in_addr_t,
-    }
-
     // Descriptor for default network interface, which we snoop on to ascertain readiness for operation. Read-only from here.
     extern "C" {
         static gnetif: netif;
     }
 
-    // ###################################################################################################
-
-    // These constants need to be consistent with the definitions in LwIP's sockets.h
-    // which unfortunately do not appear in the Rust bindings.
-    // They have all been checked against these.
-    pub const AF_INET6: i32 = 10; // Not supported in LwIP
-    pub const AF_INET: i32 = 2;
-    pub const IPPROTO_IPV6: i32 = 41; // Not supported in LwIP
-    pub const IPV6_ADD_MEMBERSHIP: i32 = 12; // Not supported in LwIP
-    pub const IPV6_DROP_MEMBERSHIP: i32 = 13; // Not supported in LwIP
+    // This constant not in LwIP Rust bindings, but needed by sys_common\net.rs
     pub const IPV6_MULTICAST_LOOP: i32 = 19; // Not supported in LwIP
-    pub const IPV6_V6ONLY: i32 = 27; // Not supported in LwIP
-    pub const IP_TTL: i32 = 2;
-    pub const IP_MULTICAST_TTL: i32 = 5;
-    pub const IP_MULTICAST_LOOP: i32 = 7;
-    pub const IP_ADD_MEMBERSHIP: i32 = 3;
-    pub const IP_DROP_MEMBERSHIP: i32 = 4;
-    pub const SHUT_RD: i32 = 0;
-    pub const SHUT_RDWR: i32 = 2;
-    pub const SHUT_WR: i32 = 1;
-    pub const SOCK_DGRAM: i32 = 2;
-    pub const SOCK_STREAM: i32 = 1;
-    pub const SOL_SOCKET: i32 = 0xfff;
-    pub const SO_BROADCAST: i32 = 32;
-    pub const SO_ERROR: i32 = 0x1007;
-    pub const SO_RCVTIMEO: i32 = 0x1006;
-    pub const SO_REUSEADDR: i32 = 4;
-    pub const SO_SNDTIMEO: i32 = 0x1005;
-    pub const SO_LINGER: i32 = 0x80;
-    pub const TCP_NODELAY: i32 = 1;
-    pub const MSG_PEEK: c_int = 1;
-    pub const FIONBIO: c_long = 0x8004667eu32 as c_long; // corrected: differs from Windows implementation
-
-    // These were in 'unsupported'
-    #[derive(Copy, Clone)]
-    pub struct in6_addr {
-        pub s6_addr: [u8; 16],
-    }
-
-    #[derive(Copy, Clone)]
-    pub struct sockaddr_in6 {
-        pub sin6_family: sa_family_t,
-        pub sin6_port: u16,
-        pub sin6_addr: in6_addr,
-        pub sin6_flowinfo: u32,
-        pub sin6_scope_id: u32,
-    }
-
-    //These borrowed from Windows SGX and other sources
-    #[repr(C)]
-    //#[derive(Debug, Copy, Clone)]
-    pub struct addrinfo {
-        pub ai_flags: c_int,
-        pub ai_family: c_int,
-        pub ai_socktype: c_int,
-        pub ai_protocol: c_int,
-        pub ai_addrlen: socklen_t,
-        pub ai_addr: *mut sockaddr,
-        pub ai_canonname: *mut c_char,
-        pub ai_next: *mut addrinfo,
-    }
-
-    #[repr(C)]
-    pub struct ip_mreq {
-        pub imr_multiaddr: in_addr,
-        pub imr_interface: in_addr,
-    }
-
-    #[repr(C)]
-    pub struct ipv6_mreq {
-        pub ipv6mr_multiaddr: in6_addr,
-        pub ipv6mr_interface: c_uint,
-    }
 
     pub fn setsockopt(
         sock: RawSocket,
@@ -312,7 +203,7 @@ pub mod netc {
     pub fn is_netif_initialised() -> bool {
         // Crude check that the interface is up by seeing if an IP address has been assigned.
         // Unfortunately, LwIP does not provide a clean API function to do this.
-        unsafe { gnetif.ip_addr != 0 }
+        unsafe { gnetif.ip_addr.addr != 0 }
     }
 }
 //###########################################################################################################################
@@ -616,7 +507,7 @@ impl Socket {
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn read_vectored(&self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
         let retval = unsafe {
-            lwip_readv(self.socket_handle, bufs.as_ptr() as *mut [u8; 0usize], bufs.len() as i32)
+            lwip_readv(self.socket_handle, bufs.as_ptr() as *mut iovec, bufs.len() as i32)
         };
         match retval {
             _ => Ok(retval as usize),
@@ -678,7 +569,7 @@ impl Socket {
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn write_vectored(&self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
         let retval = unsafe {
-            lwip_writev(self.socket_handle, bufs.as_ptr() as *const [u8; 0usize], bufs.len() as i32)
+            lwip_writev(self.socket_handle, bufs.as_ptr() as *const iovec, bufs.len() as i32)
         };
 
         match retval {
