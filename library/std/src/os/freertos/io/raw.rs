@@ -17,15 +17,7 @@ use core::ffi::c_int;
 // RawSocket holds the same state variables as Socket. It is useful as a clone of Socket, which does not call lwip_close
 // when dropped.
 #[stable(feature = "lwip_network", since = "1.64.0")]
-
 pub type RawSocket = c_int;
-/*
-#[derive(Debug, Copy, Clone)]
-pub struct RawSocket {
-    pub socket_handle: c_int, //### TODO: access function for this.
-    pub socket_type: c_int,   //### TODO: access function for this.
-}
-*/
 
 /// Extracts raw sockets.
 #[stable(feature = "lwip_network", since = "1.64.0")]
@@ -36,9 +28,6 @@ pub trait AsRawSocket {
     /// When used in this way, this method does **not** pass ownership of the
     /// raw socket to the caller, and the socket is only guaranteed
     /// to be valid while the original object has not yet been destroyed.
-    ///
-    /// However, borrowing is not strictly required. See [`AsSocket::as_socket`]
-    /// for an API which strictly borrows a socket.
     #[stable(feature = "lwip_network", since = "1.64.0")]
     fn as_raw_socket(&self) -> RawSocket;
 }
@@ -62,9 +51,8 @@ pub trait FromRawSocket {
     ///
     /// The `socket` passed in must:
     ///   - be a valid an open socket,
-    ///   - be a socket that may be freed via [`closesocket`].
-    ///
-    /// [`closesocket`]: https://docs.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-closesocket
+    ///   - be a socket that may be freed via lwip_close (achieved by assimilation
+    ///     into a socket type that calls lwip_close on drop())
     #[stable(feature = "lwip_network", since = "1.64.0")]
     unsafe fn from_raw_socket(sock: RawSocket) -> Self;
 }
@@ -113,7 +101,6 @@ impl FromRawSocket for net::TcpStream {
     #[inline]
     unsafe fn from_raw_socket(raw_socket: RawSocket) -> net::TcpStream {
         let sock = Socket::from_raw_socket(raw_socket);
-        //let sock: Socket = sys::net::Socket::from_inner(thing);
         net::TcpStream::from_inner(sys_common::net::TcpStream::from_inner(sock))
     }
 }
