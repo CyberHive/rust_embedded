@@ -324,7 +324,7 @@ where
 // Socket implementation
 #[repr(transparent)]
 #[stable(feature = "lwip_network", since = "1.64.0")]
-//#[derive(Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct Socket {
     socket_handle: c_int,
 }
@@ -347,7 +347,6 @@ impl Socket {
         };
 
         let socket_handle = unsafe { lwip_socket(family, socket_type, IPPROTO_IP) };
-        println!("std New socket {:?}", socket_handle);
 
         match socket_handle {
             -1 => Err(io::const_io_error!(io::ErrorKind::Other, "Socket creation failed")),
@@ -868,6 +867,8 @@ impl IntoInner<RawSocket> for Socket {
 impl AsRawSocket for Socket {
     fn as_raw_socket(&self) -> RawSocket {
         let raw_socket = self.as_raw();
+        // We want to drop self without calling the destructor (which closes the socket)
+        // This effectively transfers ownership of the socket to the caller's socket conversion
         forget(self);
         raw_socket
     }
