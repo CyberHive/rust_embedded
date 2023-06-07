@@ -138,9 +138,7 @@ impl FromRawSocket for net::UdpSocket {
 impl IntoRawSocket for net::TcpStream {
     #[inline]
     fn into_raw_socket(self) -> RawSocket {
-        let thing = self.into_inner().into_socket().into_inner();
-        thing //.into_raw_socket()
-        //self.into_inner().into_socket().as_raw()
+        self.into_inner().into_socket().into_inner()
     }
 }
 
@@ -148,9 +146,7 @@ impl IntoRawSocket for net::TcpStream {
 impl IntoRawSocket for net::TcpListener {
     #[inline]
     fn into_raw_socket(self) -> RawSocket {
-        //self.into_inner().into_socket().as_raw()
-        let thing = self.into_inner().into_socket().into_inner();
-        thing
+        self.into_inner().into_socket().into_inner()
     }
 }
 
@@ -158,8 +154,6 @@ impl IntoRawSocket for net::TcpListener {
 impl IntoRawSocket for net::UdpSocket {
     #[inline]
     fn into_raw_socket(self) -> RawSocket {
-        //self.into_inner().into_socket().as_raw()
-        let thing = self.into_inner().into_socket().into_inner();
-        thing
+        self.into_inner().into_socket().into_inner()
     }
 }
