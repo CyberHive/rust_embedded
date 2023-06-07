@@ -116,11 +116,9 @@ pub mod netc {
         }
     }
 
-    pub fn send(sock: RawSocket, mem: *const c_void, len: i32, _flags: c_int) -> i32 {
+    pub fn send(sock: RawSocket, mem: *const c_void, len: i32, flags: c_int) -> i32 {
         unsafe {
-            let retval = lwip_send(
-                sock, mem, len, 0, // flags
-            );
+            let retval = lwip_send(sock, mem, len, flags);
 
             retval
         }
@@ -130,7 +128,7 @@ pub mod netc {
         sock: RawSocket,
         mem: *const c_void,
         len: i32,
-        _flags: c_int,
+        flags: c_int,
         to: *const sockaddr,
         tolen: socklen_t,
     ) -> i32 {
@@ -149,10 +147,7 @@ pub mod netc {
         }
         match option {
             SOCK_DGRAM => unsafe {
-                let retval = lwip_sendto(
-                    sock, mem, len, 0, // flags
-                    to, tolen,
-                );
+                let retval = lwip_sendto(sock, mem, len, flags, to, tolen);
 
                 retval
             },
