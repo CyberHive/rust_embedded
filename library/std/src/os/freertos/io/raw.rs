@@ -1,6 +1,6 @@
 //! freertos-specific extensions to general I/O primitives.
 
-#![stable(feature = "rust1", since = "1.0.0")]
+#![stable(feature = "lwip_network", since = "1.64.0")]
 
 use crate::fs;
 use crate::io;
@@ -28,7 +28,7 @@ pub struct RawSocket {
 */
 
 /// Extracts raw sockets.
-#[stable(feature = "rust1", since = "1.0.0")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 pub trait AsRawSocket {
     /// Extracts the raw socket.
     ///
@@ -39,12 +39,12 @@ pub trait AsRawSocket {
     ///
     /// However, borrowing is not strictly required. See [`AsSocket::as_socket`]
     /// for an API which strictly borrows a socket.
-    #[stable(feature = "rust1", since = "1.0.0")]
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     fn as_raw_socket(&self) -> RawSocket;
 }
 
 /// Creates I/O objects from raw sockets.
-#[stable(feature = "from_raw_os", since = "1.1.0")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 pub trait FromRawSocket {
     /// Constructs a new I/O object from the specified raw socket.
     ///
@@ -65,13 +65,13 @@ pub trait FromRawSocket {
     ///   - be a socket that may be freed via [`closesocket`].
     ///
     /// [`closesocket`]: https://docs.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-closesocket
-    #[stable(feature = "from_raw_os", since = "1.1.0")]
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     unsafe fn from_raw_socket(sock: RawSocket) -> Self;
 }
 
 /// A trait to express the ability to consume an object and acquire ownership of
 /// its raw `SOCKET`.
-#[stable(feature = "into_raw_os", since = "1.4.0")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 pub trait IntoRawSocket {
     /// Consumes this object, returning the raw underlying socket.
     ///
@@ -82,25 +82,25 @@ pub trait IntoRawSocket {
     /// However, transferring ownership is not strictly required. Use a
     /// `Into<Socket>::into` implementation for an API which strictly
     /// transfers ownership.
-    #[stable(feature = "into_raw_os", since = "1.4.0")]
+    #[stable(feature = "lwip_network", since = "1.64.0")]
     fn into_raw_socket(self) -> RawSocket;
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 impl AsRawSocket for net::TcpStream {
     #[inline]
     fn as_raw_socket(&self) -> RawSocket {
         self.as_inner().socket().as_raw_socket()
     }
 }
-#[stable(feature = "rust1", since = "1.0.0")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 impl AsRawSocket for net::TcpListener {
     #[inline]
     fn as_raw_socket(&self) -> RawSocket {
         self.as_inner().socket().as_raw_socket()
     }
 }
-#[stable(feature = "rust1", since = "1.0.0")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 impl AsRawSocket for net::UdpSocket {
     #[inline]
     fn as_raw_socket(&self) -> RawSocket {
@@ -108,7 +108,7 @@ impl AsRawSocket for net::UdpSocket {
     }
 }
 
-#[stable(feature = "from_raw_os", since = "1.1.0")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 impl FromRawSocket for net::TcpStream {
     #[inline]
     unsafe fn from_raw_socket(raw_socket: RawSocket) -> net::TcpStream {
@@ -117,7 +117,7 @@ impl FromRawSocket for net::TcpStream {
         net::TcpStream::from_inner(sys_common::net::TcpStream::from_inner(sock))
     }
 }
-#[stable(feature = "from_raw_os", since = "1.1.0")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 impl FromRawSocket for net::TcpListener {
     #[inline]
     unsafe fn from_raw_socket(raw_socket: RawSocket) -> net::TcpListener {
@@ -125,7 +125,7 @@ impl FromRawSocket for net::TcpListener {
         net::TcpListener::from_inner(sys_common::net::TcpListener::from_inner(sock))
     }
 }
-#[stable(feature = "from_raw_os", since = "1.1.0")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 impl FromRawSocket for net::UdpSocket {
     #[inline]
     unsafe fn from_raw_socket(raw_socket: RawSocket) -> net::UdpSocket {
@@ -134,7 +134,7 @@ impl FromRawSocket for net::UdpSocket {
     }
 }
 
-#[stable(feature = "into_raw_os", since = "1.4.0")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 impl IntoRawSocket for net::TcpStream {
     #[inline]
     fn into_raw_socket(self) -> RawSocket {
@@ -144,7 +144,7 @@ impl IntoRawSocket for net::TcpStream {
     }
 }
 
-#[stable(feature = "into_raw_os", since = "1.4.0")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 impl IntoRawSocket for net::TcpListener {
     #[inline]
     fn into_raw_socket(self) -> RawSocket {
@@ -154,7 +154,7 @@ impl IntoRawSocket for net::TcpListener {
     }
 }
 
-#[stable(feature = "into_raw_os", since = "1.4.0")]
+#[stable(feature = "lwip_network", since = "1.64.0")]
 impl IntoRawSocket for net::UdpSocket {
     #[inline]
     fn into_raw_socket(self) -> RawSocket {
