@@ -5,11 +5,15 @@ use crate::io::ErrorKind::*;
 use crate::io::{self, IoSlice, IoSliceMut, Read};
 use crate::mem::size_of;
 use crate::net::{Ipv4Addr, Ipv6Addr, Shutdown, SocketAddr};
+use crate::os::freertos::io::{AsRawSocket, FromRawSocket, IntoRawSocket, RawSocket};
+use core::mem::forget;
+
 use crate::ptr;
+use crate::sys;
 use crate::sys::net::netc::*;
 use crate::sys::os::errno;
-use crate::sys::unsupported;
 use crate::sys_common::net::sockaddr_to_addr;
+use crate::sys_common::{AsInner, FromInner, IntoInner};
 use crate::time::{Duration, Instant};
 use core::ffi::{
     c_char, c_int, c_long, c_longlong, c_schar, c_short, c_uchar, c_uint, c_ulonglong, c_ushort,
@@ -27,8 +31,7 @@ pub mod netc {
 
     use crate::mem::size_of;
     use crate::sys::net::RawSocket;
-    use crate::time::Duration;
-    use core::ffi::{c_char, c_int, c_long, c_uint, c_ushort, c_void};
+    use core::ffi::{c_char, c_int, c_void};
 
     // Rust bindings for LwIP TCP/IP stack.
     include!("lwip-rs.rs");
@@ -41,6 +44,11 @@ pub mod netc {
     // This constant not in LwIP Rust bindings, but needed by sys_common\net.rs
     pub const IPV6_MULTICAST_LOOP: i32 = 19; // Not supported in LwIP
 
+    pub fn socket(family: c_int, socket_type: c_int, _protocol: c_int) -> c_int {
+        let socket_handle = unsafe { lwip_socket(family, socket_type, IPPROTO_IP) };
+        socket_handle
+    }
+
     pub fn setsockopt(
         sock: RawSocket,
         level: c_int,
@@ -48,7 +56,7 @@ pub mod netc {
         optval: *const c_void,
         optlen: socklen_t,
     ) -> c_int {
-        let retval = unsafe { lwip_setsockopt(sock.socket_handle, level, optname, optval, optlen) };
+        let retval = unsafe { lwip_setsockopt(sock, level, optname, optval, optlen) };
         match retval {
             0 => 0,
             _ => -1,
@@ -62,7 +70,7 @@ pub mod netc {
         optval: *mut c_void,
         optlen: *mut socklen_t,
     ) -> c_int {
-        let retval = unsafe { lwip_getsockopt(sock.socket_handle, level, optname, optval, optlen) };
+        let retval = unsafe { lwip_getsockopt(sock, level, optname, optval, optlen) };
         match retval {
             0 => 0,
             _ => -1,
@@ -70,8 +78,7 @@ pub mod netc {
     }
 
     pub fn bind(sock: RawSocket, name: *const sockaddr, namelen: socklen_t) -> c_int {
-        let retval =
-            unsafe { lwip_bind(sock.socket_handle, name as *const super::sockaddr, namelen) };
+        let retval = unsafe { lwip_bind(sock, name, namelen) };
         match retval {
             0 => 0,
             _ => -1,
@@ -79,8 +86,7 @@ pub mod netc {
     }
 
     pub fn connect(sock: RawSocket, name: *const sockaddr, namelen: socklen_t) -> c_int {
-        let retval =
-            unsafe { lwip_connect(sock.socket_handle, name as *const super::sockaddr, namelen) };
+        let retval = unsafe { lwip_connect(sock, name, namelen) };
         match retval {
             0 => 0,
             _ => -1,
@@ -88,7 +94,15 @@ pub mod netc {
     }
 
     pub fn listen(sock: RawSocket, backlog: c_int) -> c_int {
-        let retval = unsafe { lwip_listen(sock.socket_handle, backlog) };
+        let retval = unsafe { lwip_listen(sock, backlog) };
+        match retval {
+            0 => 0,
+            _ => -1,
+        }
+    }
+
+    pub fn accept(sock: RawSocket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
+        let retval = unsafe { lwip_accept(sock, name, namelen) };
         match retval {
             0 => 0,
             _ => -1,
@@ -97,19 +111,14 @@ pub mod netc {
 
     pub fn getsockname(sock: RawSocket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
         unsafe {
-            let retval = lwip_getsockname(sock.socket_handle, name, namelen);
+            let retval = lwip_getsockname(sock, name, namelen);
             retval
         }
     }
 
     pub fn send(sock: RawSocket, mem: *const c_void, len: i32, flags: c_int) -> i32 {
         unsafe {
-            let retval = lwip_send(
-                sock.socket_handle,
-                mem,
-                len,
-                0, // flags
-            );
+            let retval = lwip_send(sock, mem, len, flags);
 
             retval
         }
@@ -123,16 +132,22 @@ pub mod netc {
         to: *const sockaddr,
         tolen: socklen_t,
     ) -> i32 {
-        match sock.socket_type {
+        // Get the socket type using getsockopt
+        let mut option: c_int = 0;
+        let mut option_len = size_of::<c_int>() as socklen_t;
+        let retval: c_int = getsockopt(
+            sock,
+            SOL_SOCKET,
+            SO_TYPE,
+            &mut option as *mut _ as *mut c_void,
+            &mut option_len,
+        );
+        if retval == -1 {
+            return -1;
+        }
+        match option {
             SOCK_DGRAM => unsafe {
-                let retval = lwip_sendto(
-                    sock.socket_handle,
-                    mem,
-                    len,
-                    0, // flags
-                    to as *const super::sockaddr,
-                    tolen,
-                );
+                let retval = lwip_sendto(sock, mem, len, flags, to, tolen);
 
                 retval
             },
@@ -143,8 +158,13 @@ pub mod netc {
         }
     }
 
+    pub fn sendmsg(sock: RawSocket, message: *const msghdr, flags: c_int) -> i32 {
+        let retval = unsafe { lwip_sendmsg(sock, message, flags) };
+        retval
+    }
+
     pub fn recv(sock: RawSocket, mem: *mut c_void, len: i32, flags: c_int) -> i32 {
-        let retval = unsafe { lwip_recv(sock.socket_handle, mem, len as size_t, flags) };
+        let retval = unsafe { lwip_recv(sock, mem, len as size_t, flags) };
 
         retval
     }
@@ -157,18 +177,23 @@ pub mod netc {
         from: *mut sockaddr,
         fromlen: *mut socklen_t,
     ) -> i32 {
-        match sock.socket_type {
+        // Get the socket type using getsockopt
+        let mut option: c_int = 0;
+        let mut option_len = size_of::<c_int>() as socklen_t;
+        let retval: c_int = getsockopt(
+            sock,
+            SOL_SOCKET,
+            SO_TYPE,
+            &mut option as *mut _ as *mut c_void,
+            &mut option_len,
+        );
+        if retval == -1 {
+            return -1;
+        }
+        match option {
             SOCK_DGRAM => {
-                let retval = unsafe {
-                    lwip_recvfrom(
-                        sock.socket_handle,
-                        mem,
-                        len as size_t,
-                        flags,
-                        from as *mut super::sockaddr,
-                        fromlen,
-                    )
-                };
+                let retval =
+                    unsafe { lwip_recvfrom(sock, mem, len as size_t, flags, from, fromlen) };
 
                 retval
             }
@@ -179,9 +204,14 @@ pub mod netc {
         }
     }
 
+    pub fn recvmsg(sock: RawSocket, message: *mut msghdr, flags: c_int) -> i32 {
+        let retval = unsafe { lwip_recvmsg(sock, message, flags) };
+        retval
+    }
+
     pub fn getpeername(sock: RawSocket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
         unsafe {
-            let retval = lwip_getpeername(sock.socket_handle, name, namelen);
+            let retval = lwip_getpeername(sock, name, namelen);
             retval
         }
     }
@@ -204,6 +234,26 @@ pub mod netc {
         // Crude check that the interface is up by seeing if an IP address has been assigned.
         // Unfortunately, LwIP does not provide a clean API function to do this.
         unsafe { gnetif.ip_addr.addr != 0 }
+    }
+
+    pub fn shutdown(sock: RawSocket, how: c_int) -> i32 {
+        let retval = unsafe { lwip_shutdown(sock, how) };
+        retval
+    }
+
+    pub fn poll(fds: *const pollfd, nfds: nfds_t, timeout: core::ffi::c_int) -> i32 {
+        let retval = unsafe { lwip_poll(fds, nfds, timeout) };
+        retval
+    }
+
+    pub fn fcntl(s: core::ffi::c_int, cmd: core::ffi::c_int, val: core::ffi::c_int) -> i32 {
+        let retval = unsafe { lwip_fcntl(s, cmd, val) };
+        retval
+    }
+
+    pub fn ioctl(s: core::ffi::c_int, cmd: core::ffi::c_long, argp: *mut core::ffi::c_void) -> i32 {
+        let retval = unsafe { lwip_ioctl(s, cmd, argp) };
+        retval
     }
 }
 //###########################################################################################################################
@@ -267,11 +317,11 @@ where
 }
 
 // Socket implementation
+#[repr(transparent)]
 #[stable(feature = "lwip_network", since = "1.64.0")]
 #[derive(Debug, Clone)]
 pub struct Socket {
     socket_handle: c_int,
-    socket_type: c_int,
 }
 
 // This must match the timeval C definition
@@ -296,7 +346,7 @@ impl Socket {
         match socket_handle {
             -1 => Err(io::const_io_error!(io::ErrorKind::Other, "Socket creation failed")),
             _ => {
-                let socket = Socket { socket_handle: socket_handle, socket_type: socket_type };
+                let socket = Socket { socket_handle: socket_handle };
                 Ok(socket)
             }
         }
@@ -346,6 +396,23 @@ impl Socket {
             ));
         }
 
+        //Get the socket type, in case we need to reopen the socket during timeout period.
+        let mut socket_type: c_int = 0;
+        let mut option_len = size_of::<c_int>() as socklen_t;
+        let retval: c_int = netc::getsockopt(
+            self.as_raw(),
+            netc::SOL_SOCKET,
+            netc::SO_TYPE,
+            &mut socket_type as *mut _ as *mut c_void,
+            &mut option_len,
+        );
+        if retval == -1 {
+            return Err(io::const_io_error!(
+                io::ErrorKind::InvalidInput,
+                "Cannot determine socket type",
+            ));
+        }
+
         let start = Instant::now();
 
         loop {
@@ -376,11 +443,8 @@ impl Socket {
                 // If connect is in progress (as expected), we wait for the duration of the timeout and check progress.
                 -1 => {
                     if errno() == EINPROGRESS {
-                        let mut fds = pollfd {
-                            fd: self.as_raw().socket_handle,
-                            events: POLLIN | POLLOUT,
-                            revents: 0,
-                        };
+                        let mut fds =
+                            pollfd { fd: self.as_raw(), events: POLLIN | POLLOUT, revents: 0 };
 
                         // lwip_poll will return 1 on successful connection, or 0 if the timeout occurs before any response
 
@@ -405,7 +469,7 @@ impl Socket {
                                     // to call lwip_connect again
                                     let retval = unsafe { lwip_close(self.socket_handle) };
                                     let socket_handle = unsafe {
-                                        lwip_socket(netc::AF_INET, self.socket_type, IPPROTO_IP)
+                                        lwip_socket(netc::AF_INET, socket_type, IPPROTO_IP)
                                     };
                                     match socket_handle {
                                         -1 => {
@@ -476,7 +540,7 @@ impl Socket {
         match socket_handle {
             -1 => Err(io::const_io_error!(io::ErrorKind::Other, "accept failed")),
             _ => {
-                let socket = Socket { socket_handle: socket_handle, socket_type: self.socket_type };
+                let socket = Socket { socket_handle: socket_handle };
                 Ok(socket)
             }
         }
@@ -484,7 +548,8 @@ impl Socket {
 
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn duplicate(&self) -> io::Result<Socket> {
-        Ok(self.clone())
+        let socket = Socket { socket_handle: self.socket_handle };
+        Ok(socket)
     }
 
     fn recv_with_flags(&self, buf: &mut [u8], flags: c_int) -> io::Result<usize> {
@@ -748,8 +813,7 @@ impl Socket {
     // Here, we provide a clone of the Socket struct, which does not call lwip_close when dropped.
     #[stable(feature = "lwip_network", since = "1.64.0")]
     pub fn as_raw(&self) -> RawSocket {
-        let mut raw_socket =
-            RawSocket { socket_handle: self.socket_handle, socket_type: self.socket_type };
+        let mut raw_socket = self.socket_handle;
         raw_socket
     }
 }
@@ -773,11 +837,48 @@ impl Drop for Socket {
     }
 }
 
-// RawSocket holds the same state variables as Socket. It is used as a clone of Socket, which does not call lwip_close
-// when dropped.
 #[stable(feature = "lwip_network", since = "1.64.0")]
-#[derive(Debug, Copy, Clone)]
-pub struct RawSocket {
-    socket_handle: c_int,
-    socket_type: c_int,
+impl AsInner<RawSocket> for Socket {
+    fn as_inner(&self) -> &RawSocket {
+        &self.socket_handle
+    }
+}
+
+#[stable(feature = "lwip_network", since = "1.64.0")]
+impl FromInner<RawSocket> for Socket {
+    fn from_inner(sock: RawSocket) -> Socket {
+        Socket { socket_handle: sock }
+    }
+}
+
+#[stable(feature = "lwip_network", since = "1.64.0")]
+impl IntoInner<RawSocket> for Socket {
+    fn into_inner(self) -> RawSocket {
+        self.socket_handle as RawSocket
+    }
+}
+
+#[stable(feature = "lwip_network", since = "1.64.0")]
+impl AsRawSocket for Socket {
+    fn as_raw_socket(&self) -> RawSocket {
+        let raw_socket = self.as_raw();
+        // We want to drop self without calling the destructor (which closes the socket)
+        // This effectively transfers ownership of the socket to the caller's socket conversion
+        forget(self);
+        raw_socket
+    }
+}
+
+#[stable(feature = "lwip_network", since = "1.64.0")]
+impl IntoRawSocket for Socket {
+    fn into_raw_socket(self) -> RawSocket {
+        self.into_raw_socket()
+    }
+}
+
+#[stable(feature = "lwip_network", since = "1.64.0")]
+impl FromRawSocket for Socket {
+    unsafe fn from_raw_socket(raw_socket: RawSocket) -> Self {
+        Self { socket_handle: raw_socket }
+    }
 }
