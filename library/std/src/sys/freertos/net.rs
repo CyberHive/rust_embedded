@@ -44,8 +44,8 @@ pub mod netc {
     // This constant not in LwIP Rust bindings, but needed by sys_common\net.rs
     pub const IPV6_MULTICAST_LOOP: i32 = 19; // Not supported in LwIP
 
-    pub fn socket(family: c_int, socket_type: c_int, _protocol: c_int) -> c_int {
-        let socket_handle = unsafe { lwip_socket(family, socket_type, IPPROTO_IP) };
+    pub fn socket(family: c_int, socket_type: c_int, protocol: c_int) -> c_int {
+        let socket_handle = unsafe { lwip_socket(family, socket_type, protocol) };
         socket_handle
     }
 
@@ -117,11 +117,8 @@ pub mod netc {
     }
 
     pub fn send(sock: RawSocket, mem: *const c_void, len: i32, flags: c_int) -> i32 {
-        unsafe {
-            let retval = lwip_send(sock, mem, len, flags);
-
-            retval
-        }
+        let retval = unsafe { lwip_send(sock, mem, len, flags) };
+        retval
     }
 
     pub fn sendto(
@@ -132,30 +129,10 @@ pub mod netc {
         to: *const sockaddr,
         tolen: socklen_t,
     ) -> i32 {
-        // Get the socket type using getsockopt
-        let mut option: c_int = 0;
-        let mut option_len = size_of::<c_int>() as socklen_t;
-        let retval: c_int = getsockopt(
-            sock,
-            SOL_SOCKET,
-            SO_TYPE,
-            &mut option as *mut _ as *mut c_void,
-            &mut option_len,
-        );
-        if retval == -1 {
-            return -1;
-        }
-        match option {
-            SOCK_DGRAM => unsafe {
-                let retval = lwip_sendto(sock, mem, len, flags, to, tolen);
-
-                retval
-            },
-            // TCP sendto? Makes no sense.
-            SOCK_STREAM => -1,
-            // Catch-all
-            _ => -1,
-        }
+        // Call lwip_sendto regardless of socket type. It will return an error for invalid combinations.
+        // Previously only SOCK_DGRAM was supported, but we also need raw socket support.
+        let retval = unsafe { lwip_sendto(sock, mem, len, flags, to, tolen) };
+        retval
     }
 
     pub fn sendmsg(sock: RawSocket, message: *const msghdr, flags: c_int) -> i32 {
@@ -177,31 +154,10 @@ pub mod netc {
         from: *mut sockaddr,
         fromlen: *mut socklen_t,
     ) -> i32 {
-        // Get the socket type using getsockopt
-        let mut option: c_int = 0;
-        let mut option_len = size_of::<c_int>() as socklen_t;
-        let retval: c_int = getsockopt(
-            sock,
-            SOL_SOCKET,
-            SO_TYPE,
-            &mut option as *mut _ as *mut c_void,
-            &mut option_len,
-        );
-        if retval == -1 {
-            return -1;
-        }
-        match option {
-            SOCK_DGRAM => {
-                let retval =
-                    unsafe { lwip_recvfrom(sock, mem, len as size_t, flags, from, fromlen) };
-
-                retval
-            }
-            // TCP recvfrom? Makes no sense.
-            SOCK_STREAM => -1,
-            // Catch-all
-            _ => -1,
-        }
+        // Call lwip_recvfrom regardless of socket type. It will return an error for invalid combinations.
+        // Previously only SOCK_DGRAM was supported, but we also need raw socket support.
+        let retval = unsafe { lwip_recvfrom(sock, mem, len as size_t, flags, from, fromlen) };
+        retval
     }
 
     pub fn recvmsg(sock: RawSocket, message: *mut msghdr, flags: c_int) -> i32 {
