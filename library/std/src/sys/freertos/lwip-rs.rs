@@ -867,6 +867,13 @@ pub const TCP_KEEPIDLE: core::ffi::c_int = 3;
 pub const TCP_KEEPINTVL: core::ffi::c_int = 4;
 pub const TCP_KEEPCNT: core::ffi::c_int = 5;
 pub const FIONBIO: core::ffi::c_long = -2147195266;
+pub const F_GETFL: core::ffi::c_int = 3;
+pub const F_SETFL: core::ffi::c_int = 4;
+pub const O_NONBLOCK: core::ffi::c_int = 1;
+pub const O_NDELAY: core::ffi::c_int = 1;
+pub const O_RDONLY: core::ffi::c_int = 2;
+pub const O_WRONLY: core::ffi::c_int = 4;
+pub const O_RDWR: core::ffi::c_int = 6;
 pub const SHUT_RD: core::ffi::c_int = 0;
 pub const SHUT_WR: core::ffi::c_int = 1;
 pub const SHUT_RDWR: core::ffi::c_int = 2;
@@ -874,6 +881,7 @@ pub const POLLIN: i16 = 1;
 pub const POLLOUT: i16 = 2;
 pub const POLLERR: i16 = 4;
 pub const POLLNVAL: i16 = 8;
+pub const POLLHUP: i16 = 512;
 pub const IPV6_CHECKSUM: core::ffi::c_int = 7;
 pub const IPV6_V6ONLY: core::ffi::c_int = 27;
 pub const IP_MULTICAST_TTL: core::ffi::c_int = 5;
@@ -959,19 +967,19 @@ fn bindgen_test_layout_pollfd() {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct timeval {
-    pub tv_sec: core::ffi::c_long,
+    pub tv_sec: core::ffi::c_longlong,
     pub tv_usec: core::ffi::c_long,
 }
 #[test]
 fn bindgen_test_layout_timeval() {
     assert_eq!(
         ::core::mem::size_of::<timeval>(),
-        8usize,
+        16usize,
         concat!("Size of: ", stringify!(timeval))
     );
     assert_eq!(
         ::core::mem::align_of::<timeval>(),
-        4usize,
+        8usize,
         concat!("Alignment of ", stringify!(timeval))
     );
     fn test_field_tv_sec() {
@@ -998,7 +1006,7 @@ fn bindgen_test_layout_timeval() {
                 let ptr = uninit.as_ptr();
                 ::core::ptr::addr_of!((*ptr).tv_usec) as usize - ptr as usize
             },
-            4usize,
+            8usize,
             concat!(
                 "Offset of field: ",
                 stringify!(timeval),
@@ -1152,6 +1160,8 @@ fn bindgen_test_layout_msghdr() {
     }
     test_field_msg_flags();
 }
+pub const MSG_TRUNC: core::ffi::c_int = 4;
+pub const MSG_CTRUNC: core::ffi::c_int = 8;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct netif {
