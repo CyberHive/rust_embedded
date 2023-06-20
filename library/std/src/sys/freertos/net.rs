@@ -117,8 +117,7 @@ pub mod netc {
     }
 
     pub fn send(sock: RawSocket, mem: *const c_void, len: i32, flags: c_int) -> i32 {
-        let retval = unsafe { lwip_send(sock, mem, len, flags) };
-        retval
+        unsafe { lwip_send(sock, mem, len, flags) }
     }
 
     pub fn sendto(
@@ -131,19 +130,15 @@ pub mod netc {
     ) -> i32 {
         // Call lwip_sendto regardless of socket type. It will return an error for invalid combinations.
         // Previously only SOCK_DGRAM was supported, but we also need raw socket support.
-        let retval = unsafe { lwip_sendto(sock, mem, len, flags, to, tolen) };
-        retval
+        unsafe { lwip_sendto(sock, mem, len, flags, to, tolen) }
     }
 
     pub fn sendmsg(sock: RawSocket, message: *const msghdr, flags: c_int) -> i32 {
-        let retval = unsafe { lwip_sendmsg(sock, message, flags) };
-        retval
+        unsafe { lwip_sendmsg(sock, message, flags) }
     }
 
     pub fn recv(sock: RawSocket, mem: *mut c_void, len: i32, flags: c_int) -> i32 {
-        let retval = unsafe { lwip_recv(sock, mem, len as size_t, flags) };
-
-        retval
+        unsafe { lwip_recv(sock, mem, len as size_t, flags) }
     }
 
     pub fn recvfrom(
@@ -156,20 +151,15 @@ pub mod netc {
     ) -> i32 {
         // Call lwip_recvfrom regardless of socket type. It will return an error for invalid combinations.
         // Previously only SOCK_DGRAM was supported, but we also need raw socket support.
-        let retval = unsafe { lwip_recvfrom(sock, mem, len as size_t, flags, from, fromlen) };
-        retval
+        unsafe { lwip_recvfrom(sock, mem, len as size_t, flags, from, fromlen) }
     }
 
     pub fn recvmsg(sock: RawSocket, message: *mut msghdr, flags: c_int) -> i32 {
-        let retval = unsafe { lwip_recvmsg(sock, message, flags) };
-        retval
+        unsafe { lwip_recvmsg(sock, message, flags) }
     }
 
     pub fn getpeername(sock: RawSocket, name: *mut sockaddr, namelen: *mut socklen_t) -> c_int {
-        unsafe {
-            let retval = lwip_getpeername(sock, name, namelen);
-            retval
-        }
+        unsafe { lwip_getpeername(sock, name, namelen) }
     }
 
     pub fn getaddrinfo(
@@ -178,8 +168,7 @@ pub mod netc {
         hints: *const addrinfo,
         res: *mut *mut addrinfo,
     ) -> c_int {
-        let retval = unsafe { lwip_getaddrinfo(nodename, servname, hints, res) };
-        retval
+        unsafe { lwip_getaddrinfo(nodename, servname, hints, res) }
     }
 
     pub fn freeaddrinfo(ai: *mut addrinfo) {
@@ -193,23 +182,19 @@ pub mod netc {
     }
 
     pub fn shutdown(sock: RawSocket, how: c_int) -> i32 {
-        let retval = unsafe { lwip_shutdown(sock, how) };
-        retval
+        unsafe { lwip_shutdown(sock, how) }
     }
 
     pub fn poll(fds: *const pollfd, nfds: nfds_t, timeout: core::ffi::c_int) -> i32 {
-        let retval = unsafe { lwip_poll(fds, nfds, timeout) };
-        retval
+        unsafe { lwip_poll(fds, nfds, timeout) }
     }
 
     pub fn fcntl(s: core::ffi::c_int, cmd: core::ffi::c_int, val: core::ffi::c_int) -> i32 {
-        let retval = unsafe { lwip_fcntl(s, cmd, val) };
-        retval
+        unsafe { lwip_fcntl(s, cmd, val) }
     }
 
     pub fn ioctl(s: core::ffi::c_int, cmd: core::ffi::c_long, argp: *mut core::ffi::c_void) -> i32 {
-        let retval = unsafe { lwip_ioctl(s, cmd, argp) };
-        retval
+        unsafe { lwip_ioctl(s, cmd, argp) }
     }
 }
 //###########################################################################################################################
