@@ -49,7 +49,8 @@ impl Thread {
             DEFAULT_MIN_STACK_SIZE
         );
 
-        let stack_size = stack as u16;
+        // FreeRTOS task creation needs stack size in words (as a u16)
+        let stack_size_words = ((stack + 3) / 4) as u16;
 
         // std::Thread tries to start the thread then set its name. This is not possible in FreeRTOS.
         // So instead, FreeRTOS task names are just numbered RustThreads
@@ -61,7 +62,7 @@ impl Thread {
         // Create and start the FreeRTOS task
         let child_task = freertos_rust::Task::new()
             .name(thread_name.as_str())
-            .stack_size(stack_size)
+            .stack_size(stack_size_words)
             .start(move || launch_task(func_ptr_struct))
             .unwrap();
 
