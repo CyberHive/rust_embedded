@@ -2,13 +2,9 @@
 
 #![stable(feature = "lwip_network", since = "1.64.0")]
 
-use crate::fs;
-use crate::io;
 use crate::net;
 #[cfg(doc)]
 use crate::os::freertos::io::{AsHandle, AsSocket};
-use crate::ptr;
-use crate::sys;
 use crate::sys::net::Socket;
 use crate::sys_common::{self, AsInner, FromInner, IntoInner};
 use core::ffi::c_int;
